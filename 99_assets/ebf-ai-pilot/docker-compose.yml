@@ -1,0 +1,22 @@
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    ports:
+      - "${OPEN_WEBUI_PORT}:8080"
+    volumes:
+      - ./openwebui_data:/app/backend/data
+    environment:
+      - WEBUI_SECRET_KEY=ebf-local-pilot
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: chroma
+    restart: unless-stopped
+    ports:
+      - "${CHROMA_PORT}:8000"
+    volumes:
+      - ./chroma_data:/chroma/chroma
