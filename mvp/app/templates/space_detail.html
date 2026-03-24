@@ -4,20 +4,46 @@
     <div>
       <h1>{{ space.name }}</h1>
       <p class="muted">{{ space.description or "Keine Beschreibung hinterlegt." }}</p>
-      <p class="muted">
-        Chunk Size {{ space.chunk_size }}, Overlap {{ space.chunk_overlap }}, Retrieval K {{ space.retrieval_k }}
-      </p>
     </div>
     <div class="row">
       <a class="button secondary" href="/">Zurueck</a>
     </div>
   </div>
 
-  <div class="split">
-    <div class="stack">
+  <div class="space-meta-grid">
+    <div class="meta-card">
+      <div class="meta-label">Chunk Size</div>
+      <div class="meta-value">{{ space.chunk_size }}</div>
+    </div>
+    <div class="meta-card">
+      <div class="meta-label">Overlap</div>
+      <div class="meta-value">{{ space.chunk_overlap }}</div>
+    </div>
+    <div class="meta-card">
+      <div class="meta-label">Retrieval K</div>
+      <div class="meta-value">{{ space.retrieval_k }}</div>
+    </div>
+    <div class="meta-card">
+      <div class="meta-label">Chat Status</div>
+      <div class="meta-value">
+        {% if llm_ready %}
+          Bereit
+        {% else %}
+          Nicht verbunden
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="workspace-grid">
+    <div class="workspace-main stack">
       <div class="panel">
-        <h2>Dokumente hochladen</h2>
-        <p class="muted">Upload startet sofort die Docling-Verarbeitung und schreibt die Chunks in Chroma.</p>
+        <div class="section-head">
+          <div>
+            <h2>Wissen hochladen</h2>
+            <p class="muted">Dokumente werden direkt mit Docling verarbeitet und in den Space indexiert.</p>
+          </div>
+        </div>
         <form class="stack" action="/spaces/{{ space.id }}/upload" method="post" enctype="multipart/form-data">
           <div>
             <label for="files">Dateien</label>
@@ -28,7 +54,12 @@
       </div>
 
       <div class="panel">
-        <h2>Dokumentstatus</h2>
+        <div class="section-head">
+          <div>
+            <h2>Dokumentstatus</h2>
+            <p class="muted">Hier siehst du, welche Dateien im Space verarbeitet wurden.</p>
+          </div>
+        </div>
         <table class="table">
           <thead>
             <tr>
@@ -60,15 +91,22 @@
       </div>
     </div>
 
-    <div class="stack">
+    <div class="workspace-side stack">
       <div class="panel">
-        <h2>Chat</h2>
+        <div class="section-head">
+          <div>
+            <h2>Frage stellen</h2>
+            <p class="muted">
+              {% if llm_ready %}
+                Das Modell ist verbunden und nutzt nur Wissen aus diesem Space.
+              {% else %}
+                Das Modell ist noch nicht verbunden. Upload und RAG funktionieren trotzdem bereits.
+              {% endif %}
+            </p>
+          </div>
+        </div>
         <p class="muted">
-          {% if llm_ready %}
-            Chat-LLM ist konfiguriert.
-          {% else %}
-            Chat-LLM ist noch nicht konfiguriert. Upload und RAG funktionieren trotzdem bereits.
-          {% endif %}
+          Gute Fragen sind konkret und beziehen sich auf Inhalte, die du vorher hochgeladen hast.
         </p>
         <form class="stack" action="/spaces/{{ space.id }}/chat" method="post">
           <div>
@@ -81,8 +119,13 @@
 
       {% if answer %}
         <div class="chat-answer">
-          <h2>Antwort</h2>
-          <p style="white-space: pre-wrap;">{{ answer }}</p>
+          <div class="section-head">
+            <div>
+              <h2>Antwort</h2>
+              <p class="muted">Die Ausgabe folgt dem strukturierten Antwortschema des MVP.</p>
+            </div>
+          </div>
+          <div class="answer-body">{{ answer }}</div>
           {% if sources %}
             <h3>Quellen</h3>
             <ul class="sources">
@@ -93,24 +136,28 @@
           {% endif %}
         </div>
       {% endif %}
-
-      {% if retrieval_contexts %}
-        <div class="panel">
-          <h2>Verwendeter Kontext</h2>
-          <p class="muted">Diese Retrieval-Treffer wurden an das Modell uebergeben.</p>
-          <div class="stack">
-            {% for item in retrieval_contexts %}
-              <div class="card">
-                <div class="row">
-                  <span class="badge">{{ item.source_file }}</span>
-                  <span class="badge">Chunk {{ item.chunk_index }}</span>
-                </div>
-                <p class="muted" style="white-space: pre-wrap;">{{ item.text }}</p>
-              </div>
-            {% endfor %}
-          </div>
-        </div>
-      {% endif %}
     </div>
   </div>
+
+  {% if retrieval_contexts %}
+    <div class="panel context-panel">
+      <div class="section-head">
+        <div>
+          <h2>Technischer Kontext</h2>
+          <p class="muted">Diese Retrieval-Treffer wurden an das Modell uebergeben.</p>
+        </div>
+      </div>
+      <div class="context-grid">
+        {% for item in retrieval_contexts %}
+          <div class="card context-card">
+            <div class="row">
+              <span class="badge">{{ item.source_file }}</span>
+              <span class="badge">Chunk {{ item.chunk_index }}</span>
+            </div>
+            <p class="muted context-text">{{ item.text }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
 {% endblock %}
