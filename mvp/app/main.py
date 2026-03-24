@@ -231,6 +231,7 @@ def space_detail(
             "documents": documents,
             "answer": None,
             "sources": [],
+            "retrieval_contexts": [],
             "question": "",
             "llm_ready": llm_is_configured(),
         },
@@ -305,8 +306,10 @@ async def chat_with_space(
 
     answer = None
     sources: list[str] = []
+    retrieval_contexts = []
     try:
         context_blocks, sources = query_space(space, question)
+        retrieval_contexts = context_blocks
         if not context_blocks:
             set_flash(request, "Im Space wurden noch keine passenden Wissensdaten gefunden.", "info")
         else:
@@ -325,6 +328,7 @@ async def chat_with_space(
             "documents": documents,
             "answer": answer,
             "sources": sources,
+            "retrieval_contexts": retrieval_contexts,
             "question": question,
             "llm_ready": llm_is_configured(),
         },

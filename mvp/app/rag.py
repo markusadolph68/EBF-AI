@@ -77,13 +77,32 @@ def query_space(space, question: str):
 
     context_blocks = []
     sources = []
+    seen_keys = set()
     for idx, document_text in enumerate(documents):
         metadata = metadatas[idx] if idx < len(metadatas) else {}
         source_file = metadata.get("source_file", "unbekannt")
         chunk_index = metadata.get("chunk_index", "?")
+        source_key = f"{source_file}:{chunk_index}"
+        clean_text = " ".join(str(document_text).split())
+        preview = clean_text[:600].strip()
+
+        if source_key in seen_keys:
+            continue
+        seen_keys.add(source_key)
+
         context_blocks.append(
-            f"Quelle: {source_file} | Chunk: {chunk_index}\n{document_text}"
+            {
+                "source_file": source_file,
+                "chunk_index": chunk_index,
+                "text": preview,
+            }
         )
-        sources.append(f"{source_file} (Chunk {chunk_index})")
+        sources.append(
+            {
+                "source_file": source_file,
+                "chunk_index": chunk_index,
+                "label": f"{source_file} (Chunk {chunk_index})",
+            }
+        )
 
     return context_blocks, sources

@@ -24,19 +24,42 @@ def answer_question(space_name: str, question: str, context_blocks: list[str]) -
         )
 
     client = OpenAI(base_url=LLM_BASE_URL, api_key=LLM_API_KEY)
-    context_text = "\n\n---\n\n".join(context_blocks) if context_blocks else "Keine Quellen gefunden."
+    context_text = (
+        "\n\n---\n\n".join(
+            [
+                (
+                    f"Quelle: {item['source_file']} | Chunk: {item['chunk_index']}\n"
+                    f"{item['text']}"
+                )
+                for item in context_blocks
+            ]
+        )
+        if context_blocks
+        else "Keine Quellen gefunden."
+    )
 
     system_prompt = (
         "Du bist ein interner Wissensassistent. "
-        "Antworte auf Deutsch, knapp und praezise. "
-        "Nutze nur den bereitgestellten Kontext. "
-        "Wenn der Kontext nicht ausreicht, sage klar, dass die Information im Space nicht gefunden wurde."
+        "Antworte auf Deutsch. "
+        "Nutze ausschliesslich den bereitgestellten Kontext. "
+        "Erfinde nichts. "
+        "Wenn Informationen fehlen oder nur teilweise vorhanden sind, benenne das klar. "
+        "Halte dich exakt an dieses Antwortschema:\n"
+        "1. Kurzantwort\n"
+        "2. Wichtige Punkte\n"
+        "3. Unsicherheiten oder Luecken\n"
+        "4. Quellen"
     )
     user_prompt = (
         f"Space: {space_name}\n\n"
         f"Kontext:\n{context_text}\n\n"
         f"Frage:\n{question}\n\n"
-        "Erzeuge eine hilfreiche Antwort und nenne am Ende kurz die verwendeten Quellen."
+        "Regeln:\n"
+        "- Unter 'Kurzantwort' 2 bis 4 Saetze.\n"
+        "- Unter 'Wichtige Punkte' 3 bis 6 Aufzaehlungspunkte.\n"
+        "- Unter 'Unsicherheiten oder Luecken' nur Punkte nennen, die wirklich offen sind.\n"
+        "- Unter 'Quellen' nur die im Kontext vorhandenen Quellen nennen.\n"
+        "- Wenn der Kontext nicht reicht, sage das klar und antworte nicht spekulativ."
     )
 
     response = client.chat.completions.create(
@@ -50,4 +73,3 @@ def answer_question(space_name: str, question: str, context_blocks: list[str]) -
 
     message = response.choices[0].message.content or ""
     return message.strip()
-

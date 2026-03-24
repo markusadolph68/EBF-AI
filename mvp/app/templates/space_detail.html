@@ -87,10 +87,28 @@
             <h3>Quellen</h3>
             <ul class="sources">
               {% for source in sources %}
-                <li>{{ source }}</li>
+                <li>{{ source.label }}</li>
               {% endfor %}
             </ul>
           {% endif %}
+        </div>
+      {% endif %}
+
+      {% if retrieval_contexts %}
+        <div class="panel">
+          <h2>Verwendeter Kontext</h2>
+          <p class="muted">Diese Retrieval-Treffer wurden an das Modell uebergeben.</p>
+          <div class="stack">
+            {% for item in retrieval_contexts %}
+              <div class="card">
+                <div class="row">
+                  <span class="badge">{{ item.source_file }}</span>
+                  <span class="badge">Chunk {{ item.chunk_index }}</span>
+                </div>
+                <p class="muted" style="white-space: pre-wrap;">{{ item.text }}</p>
+              </div>
+            {% endfor %}
+          </div>
         </div>
       {% endif %}
     </div>
