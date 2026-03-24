@@ -60,34 +60,36 @@
             <p class="muted">Hier siehst du, welche Dateien im Space verarbeitet wurden.</p>
           </div>
         </div>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Datei</th>
-              <th>Status</th>
-              <th>Chunks</th>
-              <th>Fehler</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for document in documents %}
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
               <tr>
-                <td>{{ document.original_name }}</td>
-                <td>
-                  <span class="badge {% if document.status == 'ready' %}ready{% elif document.status == 'error' %}error{% endif %}">
-                    {{ document.status }}
-                  </span>
-                </td>
-                <td>{{ document.chunk_count }}</td>
-                <td class="muted">{{ document.error_message or "-" }}</td>
+                <th class="col-file">Datei</th>
+                <th class="col-status">Status</th>
+                <th class="col-chunks">Chunks</th>
+                <th class="col-error">Fehler</th>
               </tr>
-            {% else %}
-              <tr>
-                <td colspan="4" class="muted">Noch keine Dokumente.</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {% for document in documents %}
+                <tr>
+                  <td class="file-cell" title="{{ document.original_name }}">{{ document.original_name }}</td>
+                  <td>
+                    <span class="badge {% if document.status == 'ready' %}ready{% elif document.status == 'error' %}error{% endif %}">
+                      {{ document.status }}
+                    </span>
+                  </td>
+                  <td>{{ document.chunk_count }}</td>
+                  <td class="muted error-cell" title="{{ document.error_message or '-' }}">{{ document.error_message or "-" }}</td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="4" class="muted">Noch keine Dokumente.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 

@@ -1,4 +1,5 @@
 import os
+import re
 
 from openai import OpenAI
 
@@ -15,6 +16,27 @@ class LLMNotConfiguredError(RuntimeError):
 
 def llm_is_configured() -> bool:
     return bool(LLM_BASE_URL and LLM_MODEL)
+
+
+def sanitize_answer(text: str) -> str:
+    cleaned = text.strip()
+
+    # Remove common reasoning preambles some small models emit.
+    patterns = [
+        r"(?is)^thinking process:\s*",
+        r"(?is)^analysis:\s*",
+        r"(?is)^reasoning:\s*",
+    ]
+    for pattern in patterns:
+        cleaned = re.sub(pattern, "", cleaned).strip()
+
+    # If the model emitted chain-of-thought before the requested structure,
+    # keep only the structured part starting at "Kurzantwort".
+    match = re.search(r"(?is)(kurzantwort.*)", cleaned)
+    if match:
+        cleaned = match.group(1).strip()
+
+    return cleaned
 
 
 def answer_question(space_name: str, question: str, context_blocks: list[str]) -> str:
@@ -43,12 +65,13 @@ def answer_question(space_name: str, question: str, context_blocks: list[str]) -
         "Antworte auf Deutsch. "
         "Nutze ausschliesslich den bereitgestellten Kontext. "
         "Erfinde nichts. "
+        "Gib niemals deinen Denkprozess, keine Analyse und keine internen Zwischenschritte aus. "
         "Wenn Informationen fehlen oder nur teilweise vorhanden sind, benenne das klar. "
         "Halte dich exakt an dieses Antwortschema:\n"
-        "1. Kurzantwort\n"
-        "2. Wichtige Punkte\n"
-        "3. Unsicherheiten oder Luecken\n"
-        "4. Quellen"
+        "Kurzantwort:\n"
+        "Wichtige Punkte:\n"
+        "Unsicherheiten oder Luecken:\n"
+        "Quellen:"
     )
     user_prompt = (
         f"Space: {space_name}\n\n"
@@ -56,9 +79,11 @@ def answer_question(space_name: str, question: str, context_blocks: list[str]) -
         f"Frage:\n{question}\n\n"
         "Regeln:\n"
         "- Unter 'Kurzantwort' 2 bis 4 Saetze.\n"
-        "- Unter 'Wichtige Punkte' 3 bis 6 Aufzaehlungspunkte.\n"
+        "- Unter 'Wichtige Punkte' 3 bis 6 kurze Aufzaehlungspunkte.\n"
         "- Unter 'Unsicherheiten oder Luecken' nur Punkte nennen, die wirklich offen sind.\n"
         "- Unter 'Quellen' nur die im Kontext vorhandenen Quellen nennen.\n"
+        "- Keine englischen Ueberschriften verwenden.\n"
+        "- Keine Begriffe wie 'Thinking Process', 'Analysis', 'Reasoning' oder aehnliches ausgeben.\n"
         "- Wenn der Kontext nicht reicht, sage das klar und antworte nicht spekulativ."
     )
 
@@ -72,4 +97,4 @@ def answer_question(space_name: str, question: str, context_blocks: list[str]) -
     )
 
     message = response.choices[0].message.content or ""
-    return message.strip()
+    return sanitize_answer(message)

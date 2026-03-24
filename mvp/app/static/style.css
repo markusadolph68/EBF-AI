@@ -154,6 +154,7 @@ button {
 .table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .table th,
@@ -162,6 +163,32 @@ button {
   padding: 12px 10px;
   border-bottom: 1px solid #e7edf5;
   vertical-align: top;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.col-file {
+  width: 45%;
+}
+
+.col-status {
+  width: 14%;
+}
+
+.col-chunks {
+  width: 10%;
+}
+
+.col-error {
+  width: 31%;
+}
+
+.file-cell,
+.error-cell {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .badge {
@@ -251,6 +278,7 @@ button {
   border-radius: 14px;
   background: #f7fafc;
   border: 1px solid #e7edf5;
+  overflow-wrap: anywhere;
 }
 
 .context-panel {
@@ -279,11 +307,14 @@ button {
 }
 
 @media (max-width: 900px) {
-  .split {
+  .workspace-grid {
     grid-template-columns: 1fr;
   }
 
-  .workspace-grid {
-    grid-template-columns: 1fr;
+  .col-file,
+  .col-status,
+  .col-chunks,
+  .col-error {
+    width: auto;
   }
 }
