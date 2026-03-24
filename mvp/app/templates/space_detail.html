@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="hero space-title">
+    <div>
+      <h1>{{ space.name }}</h1>
+      <p class="muted">{{ space.description or "Keine Beschreibung hinterlegt." }}</p>
+      <p class="muted">
+        Chunk Size {{ space.chunk_size }}, Overlap {{ space.chunk_overlap }}, Retrieval K {{ space.retrieval_k }}
+      </p>
+    </div>
+    <div class="row">
+      <a class="button secondary" href="/">Zurueck</a>
+    </div>
+  </div>
+
+  <div class="split">
+    <div class="stack">
+      <div class="panel">
+        <h2>Dokumente hochladen</h2>
+        <p class="muted">Upload startet sofort die Docling-Verarbeitung und schreibt die Chunks in Chroma.</p>
+        <form class="stack" action="/spaces/{{ space.id }}/upload" method="post" enctype="multipart/form-data">
+          <div>
+            <label for="files">Dateien</label>
+            <input id="files" name="files" type="file" multiple required>
+          </div>
+          <button type="submit">Upload und Ingestion starten</button>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h2>Dokumentstatus</h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Datei</th>
+              <th>Status</th>
+              <th>Chunks</th>
+              <th>Fehler</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for document in documents %}
+              <tr>
+                <td>{{ document.original_name }}</td>
+                <td>
+                  <span class="badge {% if document.status == 'ready' %}ready{% elif document.status == 'error' %}error{% endif %}">
+                    {{ document.status }}
+                  </span>
+                </td>
+                <td>{{ document.chunk_count }}</td>
+                <td class="muted">{{ document.error_message or "-" }}</td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="4" class="muted">Noch keine Dokumente.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div class="panel">
+        <h2>Chat</h2>
+        <p class="muted">
+          {% if llm_ready %}
+            Chat-LLM ist konfiguriert.
+          {% else %}
+            Chat-LLM ist noch nicht konfiguriert. Upload und RAG funktionieren trotzdem bereits.
+          {% endif %}
+        </p>
+        <form class="stack" action="/spaces/{{ space.id }}/chat" method="post">
+          <div>
+            <label for="question">Frage</label>
+            <textarea id="question" name="question" required>{{ question }}</textarea>
+          </div>
+          <button type="submit">Frage senden</button>
+        </form>
+      </div>
+
+      {% if answer %}
+        <div class="chat-answer">
+          <h2>Antwort</h2>
+          <p style="white-space: pre-wrap;">{{ answer }}</p>
+          {% if sources %}
+            <h3>Quellen</h3>
+            <ul class="sources">
+              {% for source in sources %}
+                <li>{{ source }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

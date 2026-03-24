@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="hero">
+    <h1>Neuen Space anlegen</h1>
+    <p class="muted">Ein Space kapselt Wissen, Chunking-Konfiguration und Chat-Kontext.</p>
+  </div>
+
+  <div class="panel" style="max-width: 720px;">
+    <form class="stack" action="/spaces/new" method="post">
+      <div>
+        <label for="name">Name</label>
+        <input id="name" name="name" required>
+      </div>
+      <div>
+        <label for="description">Beschreibung</label>
+        <textarea id="description" name="description"></textarea>
+      </div>
+      <div class="card-grid">
+        <div>
+          <label for="chunk_size">Chunk Size</label>
+          <input id="chunk_size" name="chunk_size" type="number" min="50" value="{{ default_chunk_size }}">
+        </div>
+        <div>
+          <label for="chunk_overlap">Chunk Overlap</label>
+          <input id="chunk_overlap" name="chunk_overlap" type="number" min="0" value="{{ default_chunk_overlap }}">
+        </div>
+        <div>
+          <label for="retrieval_k">Retrieval K</label>
+          <input id="retrieval_k" name="retrieval_k" type="number" min="1" max="10" value="{{ default_retrieval_k }}">
+        </div>
+      </div>
+      <div class="row">
+        <button type="submit">Space erstellen</button>
+        <a class="button secondary" href="/">Abbrechen</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}
+

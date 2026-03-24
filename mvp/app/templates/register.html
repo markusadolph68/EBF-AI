@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="hero">
+    <h1>Benutzer anlegen</h1>
+    <p class="muted">MVP-Start mit lokaler Authentifizierung.</p>
+  </div>
+
+  <div class="panel" style="max-width: 520px;">
+    <form class="stack" action="/register" method="post">
+      <div>
+        <label for="username">Benutzername</label>
+        <input id="username" name="username" required minlength="3">
+      </div>
+      <div>
+        <label for="password">Passwort</label>
+        <input id="password" name="password" type="password" required minlength="8">
+      </div>
+      <button type="submit">Benutzer anlegen</button>
+      <a class="button secondary" href="/login">Zurueck zum Login</a>
+    </form>
+  </div>
+{% endblock %}
+

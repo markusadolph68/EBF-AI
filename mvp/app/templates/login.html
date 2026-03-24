@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="hero">
+    <h1>Login</h1>
+    <p class="muted">Lokale MVP-Anmeldung ohne Entra. Entra folgt spaeter.</p>
+  </div>
+
+  <div class="panel" style="max-width: 520px;">
+    <form class="stack" action="/login" method="post">
+      <div>
+        <label for="username">Benutzername</label>
+        <input id="username" name="username" required>
+      </div>
+      <div>
+        <label for="password">Passwort</label>
+        <input id="password" name="password" type="password" required>
+      </div>
+      <button type="submit">Einloggen</button>
+      <a class="button secondary" href="/register">Neuen Benutzer registrieren</a>
+    </form>
+  </div>
+{% endblock %}
+

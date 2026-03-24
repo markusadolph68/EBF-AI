@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="hero">
+    <h1>MVP Dashboard</h1>
+    <p class="muted">
+      Spaces verwalten, Dokumente mit Docling indexieren und spaeter darauf chatten.
+    </p>
+    <div class="row">
+      <a class="button" href="/spaces/new">Neuen Space anlegen</a>
+      {% if llm_ready %}
+        <span class="badge ready">Chat-LLM konfiguriert</span>
+      {% else %}
+        <span class="badge error">Chat-LLM noch nicht konfiguriert</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card-grid">
+    {% for space in spaces %}
+      <div class="card">
+        <h3>{{ space.name }}</h3>
+        <p class="muted">{{ space.description or "Kein Beschreibungstext." }}</p>
+        <p class="muted">
+          Chunk Size: {{ space.chunk_size }} | Overlap: {{ space.chunk_overlap }} | Retrieval K: {{ space.retrieval_k }}
+        </p>
+        <a class="button secondary" href="/spaces/{{ space.id }}">Space oeffnen</a>
+      </div>
+    {% else %}
+      <div class="card">
+        <h3>Noch keine Spaces</h3>
+        <p class="muted">
+          Lege den ersten Space an. Standardwerte fuer neue Spaces sind Chunk Size {{ default_chunk_size }}
+          und Overlap {{ default_chunk_overlap }}.
+        </p>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}
+
