@@ -39,6 +39,35 @@ def sanitize_answer(text: str) -> str:
     return cleaned
 
 
+def parse_answer_sections(text: str) -> dict[str, str]:
+    normalized = sanitize_answer(text)
+    section_names = [
+        "Kurzantwort",
+        "Wichtige Punkte",
+        "Unsicherheiten oder Luecken",
+        "Quellen",
+    ]
+
+    sections = {name: "" for name in section_names}
+    positions = []
+    for name in section_names:
+        match = re.search(rf"(?im)^\s*{re.escape(name)}\s*:?", normalized)
+        if match:
+            positions.append((match.start(), match.end(), name))
+
+    if not positions:
+        sections["Kurzantwort"] = normalized
+        return sections
+
+    positions.sort(key=lambda item: item[0])
+    for index, (_, end_pos, name) in enumerate(positions):
+        next_start = positions[index + 1][0] if index + 1 < len(positions) else len(normalized)
+        content = normalized[end_pos:next_start].strip(" \n:-")
+        sections[name] = content.strip()
+
+    return sections
+
+
 def answer_question(space_name: str, question: str, context_blocks: list[str]) -> str:
     if not llm_is_configured():
         raise LLMNotConfiguredError(

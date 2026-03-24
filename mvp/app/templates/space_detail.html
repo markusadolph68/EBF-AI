@@ -6,42 +6,44 @@
       <p class="muted">{{ space.description or "Keine Beschreibung hinterlegt." }}</p>
     </div>
     <div class="row">
-      <a class="button secondary" href="/">Zurueck</a>
+      <a class="button secondary" href="/">Zurueck zur Uebersicht</a>
     </div>
   </div>
 
-  <div class="space-meta-grid">
-    <div class="meta-card">
-      <div class="meta-label">Chunk Size</div>
-      <div class="meta-value">{{ space.chunk_size }}</div>
-    </div>
-    <div class="meta-card">
-      <div class="meta-label">Overlap</div>
-      <div class="meta-value">{{ space.chunk_overlap }}</div>
-    </div>
-    <div class="meta-card">
-      <div class="meta-label">Retrieval K</div>
-      <div class="meta-value">{{ space.retrieval_k }}</div>
-    </div>
-    <div class="meta-card">
-      <div class="meta-label">Chat Status</div>
-      <div class="meta-value">
-        {% if llm_ready %}
-          Bereit
-        {% else %}
-          Nicht verbunden
-        {% endif %}
+  <div class="workspace-shell">
+    <aside class="sidebar">
+      <div class="panel sidebar-panel">
+        <div class="section-head">
+          <div>
+            <h2>Space Einstellungen</h2>
+            <p class="muted">Parameter fuer Retrieval und Antwortverhalten.</p>
+          </div>
+        </div>
+        <div class="space-meta-grid">
+          <div class="meta-card">
+            <div class="meta-label">Chunk Size</div>
+            <div class="meta-value">{{ space.chunk_size }}</div>
+          </div>
+          <div class="meta-card">
+            <div class="meta-label">Overlap</div>
+            <div class="meta-value">{{ space.chunk_overlap }}</div>
+          </div>
+          <div class="meta-card">
+            <div class="meta-label">Retrieval K</div>
+            <div class="meta-value">{{ space.retrieval_k }}</div>
+          </div>
+          <div class="meta-card">
+            <div class="meta-label">Chat Status</div>
+            <div class="meta-value">{% if llm_ready %}Bereit{% else %}Offline{% endif %}</div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <div class="workspace-grid">
-    <div class="workspace-main stack">
-      <div class="panel">
+      <div class="panel sidebar-panel secondary-panel">
         <div class="section-head">
           <div>
             <h2>Wissen hochladen</h2>
-            <p class="muted">Dokumente werden direkt mit Docling verarbeitet und in den Space indexiert.</p>
+            <p class="muted">Dokumente werden direkt mit Docling verarbeitet und indexiert.</p>
           </div>
         </div>
         <form class="stack" action="/spaces/{{ space.id }}/upload" method="post" enctype="multipart/form-data">
@@ -49,117 +51,135 @@
             <label for="files">Dateien</label>
             <input id="files" name="files" type="file" multiple required>
           </div>
-          <button type="submit">Upload und Ingestion starten</button>
+          <button type="submit">Dokumente importieren</button>
         </form>
       </div>
 
-      <div class="panel">
+      <div class="panel sidebar-panel secondary-panel">
         <div class="section-head">
           <div>
-            <h2>Dokumentstatus</h2>
-            <p class="muted">Hier siehst du, welche Dateien im Space verarbeitet wurden.</p>
+            <h2>Dokumente</h2>
+            <p class="muted">{{ documents|length }} Datei(en) im Space.</p>
           </div>
         </div>
-        <div class="table-wrap">
-          <table class="table">
-            <thead>
-              <tr>
-                <th class="col-file">Datei</th>
-                <th class="col-status">Status</th>
-                <th class="col-chunks">Chunks</th>
-                <th class="col-error">Fehler</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for document in documents %}
-                <tr>
-                  <td class="file-cell" title="{{ document.original_name }}">{{ document.original_name }}</td>
-                  <td>
-                    <span class="badge {% if document.status == 'ready' %}ready{% elif document.status == 'error' %}error{% endif %}">
-                      {{ document.status }}
-                    </span>
-                  </td>
-                  <td>{{ document.chunk_count }}</td>
-                  <td class="muted error-cell" title="{{ document.error_message or '-' }}">{{ document.error_message or "-" }}</td>
-                </tr>
-              {% else %}
-                <tr>
-                  <td colspan="4" class="muted">Noch keine Dokumente.</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+        <div class="document-list">
+          {% for document in documents %}
+            <div class="document-item">
+              <div class="document-main">
+                <div class="document-name" title="{{ document.original_name }}">{{ document.original_name }}</div>
+                <div class="document-meta">
+                  <span class="badge {% if document.status == 'ready' %}ready{% elif document.status == 'error' %}error{% endif %}">
+                    {{ document.status }}
+                  </span>
+                  <span class="muted">{{ document.chunk_count }} Chunks</span>
+                </div>
+              </div>
+              {% if document.error_message %}
+                <div class="document-error">{{ document.error_message }}</div>
+              {% endif %}
+            </div>
+          {% else %}
+            <div class="empty-state">Noch keine Dokumente im Space.</div>
+          {% endfor %}
         </div>
       </div>
-    </div>
+    </aside>
 
-    <div class="workspace-side stack">
-      <div class="panel">
+    <main class="chat-stage">
+      <div class="panel composer-panel">
         <div class="section-head">
           <div>
             <h2>Frage stellen</h2>
             <p class="muted">
               {% if llm_ready %}
-                Das Modell ist verbunden und nutzt nur Wissen aus diesem Space.
+                Das Modell nutzt ausschliesslich Wissen aus diesem Space.
               {% else %}
-                Das Modell ist noch nicht verbunden. Upload und RAG funktionieren trotzdem bereits.
+                Das Modell ist aktuell nicht verbunden.
               {% endif %}
             </p>
           </div>
         </div>
-        <p class="muted">
-          Gute Fragen sind konkret und beziehen sich auf Inhalte, die du vorher hochgeladen hast.
-        </p>
         <form class="stack" action="/spaces/{{ space.id }}/chat" method="post">
           <div>
             <label for="question">Frage</label>
-            <textarea id="question" name="question" required>{{ question }}</textarea>
+            <textarea class="composer-textarea" id="question" name="question" required>{{ question }}</textarea>
           </div>
-          <button type="submit">Frage senden</button>
+          <div class="composer-actions">
+            <button type="submit">Frage senden</button>
+          </div>
         </form>
       </div>
 
-      {% if answer %}
-        <div class="chat-answer">
-          <div class="section-head">
-            <div>
-              <h2>Antwort</h2>
-              <p class="muted">Die Ausgabe folgt dem strukturierten Antwortschema des MVP.</p>
+      {% if answer_sections %}
+        <div class="answer-stage">
+          <div class="panel answer-panel answer-panel-primary">
+            <div class="section-head">
+              <div>
+                <h2>Antwort</h2>
+                <p class="muted">Strukturierte Ausgabe fuer schnelle Orientierung.</p>
+              </div>
+            </div>
+            <div class="answer-summary">{{ answer_sections["Kurzantwort"] or answer }}</div>
+          </div>
+
+          <div class="answer-grid">
+            <div class="panel answer-panel">
+              <h3>Wichtige Punkte</h3>
+              {% if answer_sections["Wichtige Punkte"] %}
+                <div class="answer-copy">{{ answer_sections["Wichtige Punkte"] }}</div>
+              {% else %}
+                <div class="empty-state">Keine weiteren Punkte extrahiert.</div>
+              {% endif %}
+            </div>
+
+            <div class="panel answer-panel">
+              <h3>Unsicherheiten oder Luecken</h3>
+              {% if answer_sections["Unsicherheiten oder Luecken"] %}
+                <div class="answer-copy">{{ answer_sections["Unsicherheiten oder Luecken"] }}</div>
+              {% else %}
+                <div class="empty-state">Keine offenen Punkte genannt.</div>
+              {% endif %}
             </div>
           </div>
-          <div class="answer-body">{{ answer }}</div>
-          {% if sources %}
+
+          <div class="panel answer-panel">
             <h3>Quellen</h3>
-            <ul class="sources">
-              {% for source in sources %}
-                <li>{{ source.label }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
+            {% if sources %}
+              <ul class="sources source-chips">
+                {% for source in sources %}
+                  <li>{{ source.label }}</li>
+                {% endfor %}
+              </ul>
+            {% elif answer_sections["Quellen"] %}
+              <div class="answer-copy">{{ answer_sections["Quellen"] }}</div>
+            {% else %}
+              <div class="empty-state">Keine Quellen ausgegeben.</div>
+            {% endif %}
+          </div>
+        </div>
+      {% else %}
+        <div class="panel empty-answer">
+          <h2>Bereit fuer die erste Frage</h2>
+          <p class="muted">Lade Dokumente hoch und stelle anschliessend eine konkrete Frage zu diesem Space.</p>
         </div>
       {% endif %}
-    </div>
-  </div>
 
-  {% if retrieval_contexts %}
-    <div class="panel context-panel">
-      <div class="section-head">
-        <div>
-          <h2>Technischer Kontext</h2>
-          <p class="muted">Diese Retrieval-Treffer wurden an das Modell uebergeben.</p>
-        </div>
-      </div>
-      <div class="context-grid">
-        {% for item in retrieval_contexts %}
-          <div class="card context-card">
-            <div class="row">
-              <span class="badge">{{ item.source_file }}</span>
-              <span class="badge">Chunk {{ item.chunk_index }}</span>
-            </div>
-            <p class="muted context-text">{{ item.text }}</p>
+      {% if retrieval_contexts %}
+        <details class="context-details">
+          <summary>Technischen Kontext anzeigen</summary>
+          <div class="context-grid">
+            {% for item in retrieval_contexts %}
+              <div class="card context-card">
+                <div class="row">
+                  <span class="badge">{{ item.source_file }}</span>
+                  <span class="badge">Chunk {{ item.chunk_index }}</span>
+                </div>
+                <p class="muted context-text">{{ item.text }}</p>
+              </div>
+            {% endfor %}
           </div>
-        {% endfor %}
-      </div>
-    </div>
-  {% endif %}
+        </details>
+      {% endif %}
+    </main>
+  </div>
 {% endblock %}

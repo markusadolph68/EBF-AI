@@ -12,7 +12,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from database import Base, engine, get_db
 from docling_ingest import ensure_dir, sha256_file
-from llm import LLMNotConfiguredError, answer_question, llm_is_configured
+from llm import LLMNotConfiguredError, answer_question, llm_is_configured, parse_answer_sections
 from models import Document, Space, User
 from rag import ingest_document, query_space
 from security import hash_password, verify_password
@@ -230,6 +230,7 @@ def space_detail(
             "space": space,
             "documents": documents,
             "answer": None,
+            "answer_sections": None,
             "sources": [],
             "retrieval_contexts": [],
             "question": "",
@@ -305,6 +306,7 @@ async def chat_with_space(
     documents = db.query(Document).filter(Document.space_id == space.id).order_by(Document.created_at.desc()).all()
 
     answer = None
+    answer_sections = None
     sources: list[str] = []
     retrieval_contexts = []
     try:
@@ -314,6 +316,7 @@ async def chat_with_space(
             set_flash(request, "Im Space wurden noch keine passenden Wissensdaten gefunden.", "info")
         else:
             answer = answer_question(space.name, question, context_blocks)
+            answer_sections = parse_answer_sections(answer)
     except LLMNotConfiguredError as exc:
         set_flash(request, str(exc), "error")
     except Exception as exc:
@@ -327,6 +330,7 @@ async def chat_with_space(
             "space": space,
             "documents": documents,
             "answer": answer,
+            "answer_sections": answer_sections,
             "sources": sources,
             "retrieval_contexts": retrieval_contexts,
             "question": question,
