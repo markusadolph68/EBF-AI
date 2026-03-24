@@ -22,4 +22,4 @@ services:
     ports:
       - "8001:8000"
     volumes:
-      - ./data/chroma:/chroma/chroma
+      - ./data/chroma:/data

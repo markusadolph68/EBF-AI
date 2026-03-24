@@ -80,6 +80,18 @@ Darin liegen:
 - verarbeitete Dokumente
 - Chroma-Daten
 
+## Persistenz
+
+Der MVP speichert persistent in zwei Schichten:
+
+- SQLite unter `mvp/data/app.db`
+- Chroma unter `mvp/data/chroma/`
+
+Wichtig:
+- Wenn du `docker compose down` nutzt, bleiben die Daten erhalten.
+- Wenn du `mvp/data/` loeschst, ist das Wissen weg.
+- Bereits hochgeladene Dateien bleiben in `mvp/data/uploads/`, aber wenn Chroma-Daten fehlen, musst du neu indexieren oder neu hochladen.
+
 ## MLX-Konfiguration
 
 Die Standardwerte in [.env](/Users/markusadolph/Library/CloudStorage/OneDrive-EBF-EDVBeratungFöllmerGmbH/EBF RAG/mvp/.env) zeigen auf:
