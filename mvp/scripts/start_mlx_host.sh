@@ -4,7 +4,19 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
-python3 -m venv .venv-mlx
+if command -v python3.13 >/dev/null 2>&1; then
+  PYTHON_BIN="python3.13"
+elif command -v python3.12 >/dev/null 2>&1; then
+  PYTHON_BIN="python3.12"
+elif command -v python3.11 >/dev/null 2>&1; then
+  PYTHON_BIN="python3.11"
+else
+  PYTHON_BIN="python3"
+fi
+
+echo "Nutze Python: $PYTHON_BIN"
+
+"$PYTHON_BIN" -m venv .venv-mlx
 source .venv-mlx/bin/activate
 pip install --upgrade pip
 pip install -r mlx_host/requirements.txt
