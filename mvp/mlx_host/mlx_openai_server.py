@@ -91,6 +91,11 @@ def list_models():
 @app.post("/v1/completions")
 def completions(req: CompletionRequest):
     try:
+        if req.model and req.model != MODEL_NAME:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Model '{req.model}' ist nicht geladen. Verfuegbar: '{MODEL_NAME}'.",
+            )
         text = generate_text(req.prompt, req.max_tokens)
         return {
             "id": "cmpl-ebf-mlx",
@@ -111,6 +116,11 @@ def completions(req: CompletionRequest):
 @app.post("/v1/chat/completions")
 def chat_completions(req: ChatCompletionRequest):
     try:
+        if req.model and req.model != MODEL_NAME:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Model '{req.model}' ist nicht geladen. Verfuegbar: '{MODEL_NAME}'.",
+            )
         prompt = build_prompt(req.messages)
         text = generate_text(prompt, req.max_tokens)
         return {

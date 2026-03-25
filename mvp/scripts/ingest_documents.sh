@@ -22,6 +22,9 @@ fi
 
 echo "Nutze Python: $PYTHON_BIN"
 
+echo "Hinweis: Diese headless Ingestion schreibt direkt nach Chroma, erstellt aber keine Open WebUI Knowledge-Base-Objekte."
+echo "Fuer den normalen Pilotpfad ist der Upload ueber die Open WebUI-Oberflaeche der Standard."
+
 "$PYTHON_BIN" -m venv .venv-ingest
 source .venv-ingest/bin/activate
 pip install --upgrade pip

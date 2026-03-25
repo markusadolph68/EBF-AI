@@ -8,11 +8,26 @@ services:
     ports:
       - "${OPEN_WEBUI_PORT:-3000}:8080"
     volumes:
-      - ./data/openwebui:/app/backend/data
+      - ./data/open-webui:/app/backend/data
     environment:
+      DATA_DIR: /app/backend/data
       WEBUI_NAME: "${WEBUI_NAME:-EBF AI}"
       WEBUI_SECRET_KEY: "${WEBUI_SECRET_KEY:-ebf-ai-local-pilot}"
+      WEBUI_URL: "${WEBUI_URL:-http://localhost:3000}"
       DEFAULT_LOCALE: "${DEFAULT_LOCALE:-de-DE}"
+      ENABLE_SIGNUP: "${ENABLE_SIGNUP:-true}"
+      ENABLE_PERSISTENT_CONFIG: "${ENABLE_PERSISTENT_CONFIG:-False}"
+      ENABLE_OLLAMA_API: "${ENABLE_OLLAMA_API:-False}"
+      ENABLE_OPENAI_API: "${ENABLE_OPENAI_API:-True}"
+      OPENAI_API_BASE_URL: "${OPENAI_API_BASE_URL:-http://host.docker.internal:8000/v1}"
+      OPENAI_API_BASE_URLS: "${OPENAI_API_BASE_URLS:-http://host.docker.internal:8000/v1}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-mlx}"
+      TASK_MODEL_EXTERNAL: "${TASK_MODEL_EXTERNAL:-NexVeridian/Qwen3.5-4B-5bit}"
+      VECTOR_DB: "${VECTOR_DB:-chroma}"
+      CHROMA_HTTP_HOST: "${CHROMA_HTTP_HOST:-chroma}"
+      CHROMA_HTTP_PORT: "${CHROMA_HTTP_PORT:-8000}"
+      CHROMA_TENANT: "${CHROMA_TENANT:-default_tenant}"
+      CHROMA_DATABASE: "${CHROMA_DATABASE:-default_database}"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -25,4 +40,4 @@ services:
     ports:
       - "${CHROMA_PORT:-8001}:8000"
     volumes:
-      - ./data/chroma:/chroma/chroma
+      - ./data/chromadb:/data

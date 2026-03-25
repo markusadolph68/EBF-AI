@@ -1,27 +1,43 @@
 # EBF AI MVP
 
-Referenz-MVP auf Basis von:
-- Open WebUI als Benutzeroberflaeche
-- hostseitigem MLX/OpenAI-kompatiblem Modellserver
-- Chroma als Vektor-Datenbank
-- Docling-basierter, headless Ingestion nach Chroma
+OpenWebUI-basierter MVP fuer den lokalen Pilot auf dem Mac Mini M4.
 
-Wichtig:
-- Entra ist bewusst **nicht** Teil dieses Baselineschritts.
-- Zuerst wird ein lokal reproduzierbarer Pilot mit Open WebUI + MLX + Chroma stabilisiert.
-- Entra folgt spaeter als letzter Integrationsschritt.
+Standardpfad:
+- Open WebUI als Benutzeroberflaeche
+- hostseitiger MLX/OpenAI-kompatibler Modellserver
+- Chroma als separater HTTP-Vektorstore
+- Dokument-Upload und Knowledge-Bases primaer ueber Open WebUI
+
+Nicht Teil dieses Schritts:
+- Entra / OIDC
+- Mehrbenutzer-Governance
+- produktive Automatisierung
 
 ## Architektur
 
-- `docker-compose.yml`: Open WebUI und Chroma
+- `docker-compose.yml`: Open WebUI plus Chroma
 - `mlx_host/`: hostseitiger MLX/OpenAI-kompatibler Server fuer Apple Silicon
-- `ingest/`: headless Ingestion von `documents/` nach Chroma
-- `scripts/`: Start-, Stop-, Healthcheck- und Ingestion-Skripte
+- `scripts/start_stack.sh`: startet Open WebUI und Chroma
+- `scripts/start_mlx_host.sh`: startet den MLX-Server auf dem Host
+- `scripts/healthcheck.sh`: prueft Open WebUI, Chroma und MLX
+
+Optional:
+- `ingest/`: experimentelle headless Ingestion direkt nach Chroma
+- `app/`: alter FastAPI-Prototyp, nicht mehr der Default-Pfad
+
+## Warum dieser Aufbau
+
+Open WebUI wird laut offizieller Doku mit Chroma als separatem HTTP-Service betrieben, wenn mehrere Worker oder saubere Container-Trennung gewuenscht sind. Dafuer werden `VECTOR_DB=chroma` sowie `CHROMA_HTTP_HOST` und `CHROMA_HTTP_PORT` gesetzt. Fuer OpenAI-kompatible Backends werden `OPENAI_API_BASE_URL(S)` und `OPENAI_API_KEY` verwendet.
+
+Verwendete Open-WebUI-Doku:
+- [Quick Start](https://docs.openwebui.com/getting-started/quick-start/)
+- [Environment Configuration](https://docs.openwebui.com/reference/env-configuration/)
+- [OpenAI-Compatible Provider Setup](https://docs.openwebui.com/getting-started/quick-start/connect-a-provider/starting-with-openai-compatible/)
 
 ## Wichtiger Mac-Hinweis
 
 Open WebUI und Chroma laufen in Docker.
-Der Modellserver laeuft absichtlich auf dem Host, weil MLX/Metal unter macOS nicht sinnvoll im Linux-Container laeuft.
+Das Chat-Modell laeuft absichtlich auf dem Host, weil MLX/Metal unter macOS nicht sinnvoll als Linux-Container betrieben wird.
 
 ## Schnellstart
 
@@ -56,15 +72,37 @@ cp .env.example .env
 http://localhost:3000
 ```
 
-6. In Open WebUI den Provider anlegen:
-- Typ: `OpenAI-compatible`
-- Base URL: `http://host.docker.internal:8000/v1`
-- API Key: `mlx`
-- Modell: Wert aus `MLX_MODEL_NAME`
+## Open WebUI im Pilot benutzen
 
-## Dokumente und Ingestion
+Nach dem Start:
 
-Pilotdokumente liegen unter:
+1. ersten lokalen Benutzer in Open WebUI anlegen
+2. unter `Admin > Settings > Connections` pruefen, ob der OpenAI-kompatible Endpoint vorhanden ist
+3. Modell `NexVeridian/Qwen3.5-4B-5bit` auswaehlen
+4. fuer RAG in Open WebUI eigene Knowledge Bases / Workspaces anlegen
+5. Dokumente ueber die Open-WebUI-Oberflaeche hochladen
+
+Wichtig:
+- Der MVP-Standardpfad fuer Wissen ist jetzt der Upload ueber Open WebUI.
+- Die headless Ingestion unter `scripts/ingest_documents.sh` bleibt optional und schreibt nur direkt nach Chroma. Sie erzeugt keine Open-WebUI-Knowledge-Base-Eintraege.
+
+## Persistenz
+
+Persistente Daten liegen unter:
+
+```text
+mvp/data/
+├── open-webui/
+└── chromadb/
+```
+
+Das bedeutet:
+- `docker compose down` behaelt Daten
+- das Loeschen von `mvp/data/` loescht Open-WebUI- und Chroma-Zustand
+
+## Dokumentordner
+
+Fuer den Pilot bleiben diese Ordner als Ablage und Ingestion-Quelle vorhanden:
 
 ```text
 mvp/documents/hr/
@@ -72,27 +110,18 @@ mvp/documents/vertrieb/
 mvp/documents/projekte/
 ```
 
-Optional kann pro Dokument eine Sidecar-Datei `<datei>.metadata.json` abgelegt werden, um Felder wie `title`, `version`, `confidentiality`, `document_type`, `owner`, `kb_name` oder `tags` zu setzen.
-
-Die headless Ingestion nach Chroma startest du so:
-
-```bash
-./scripts/ingest_documents.sh
-```
-
-Dabei werden:
-- Texte mit Docling extrahiert
-- Chunks erzeugt
-- Pflichtmetadaten gesetzt
-- Manifeste unter `mvp/processed/manifests/` geschrieben
+Sie sind fuer:
+- kuratierte Pilotdokumente
+- spaetere Reindex-/Importpfade
+- optionale headless Ingestion
 
 ## Healthchecks
 
-Folgende Checks sind vorgesehen:
-- Open WebUI ueber `http://localhost:3000/`
+Die Skripte pruefen:
+- Open WebUI unter `http://localhost:3000/`
 - Chroma Heartbeat ueber Port `8001`
-- MLX-Server ueber `http://localhost:8000/health`
-- Modellliste ueber `http://localhost:8000/v1/models`
+- MLX unter `http://localhost:8000/health`
+- Modellliste unter `http://localhost:8000/v1/models`
 
 ## Projektstruktur
 
@@ -101,33 +130,18 @@ mvp/
 ├── .env.example
 ├── docker-compose.yml
 ├── documents/
-│   ├── hr/
-│   ├── vertrieb/
-│   └── projekte/
 ├── ingest/
-│   ├── ingest_documents.py
-│   └── requirements.txt
 ├── mlx_host/
-│   ├── mlx_openai_server.py
-│   └── requirements.txt
 ├── processed/
-│   └── manifests/
-└── scripts/
-    ├── healthcheck.sh
-    ├── ingest_documents.sh
-    ├── start_mlx_host.sh
-    ├── start_stack.sh
-    └── stop_stack.sh
+├── scripts/
+├── data/
+└── app/   # alter FastAPI-Prototyp, nicht Standard
 ```
 
-## Status
+## Nächste sinnvolle Ausbaustufen
 
-Der alte FastAPI-Prototyp unter `mvp/app/` bleibt vorerst als Referenz erhalten, ist aber **nicht mehr** der Default-Pfad fuer den Pilot.
-
-## Naechste sinnvolle Ausbaustufen
-
+- Open-WebUI-Knowledge-Bases fachlich strukturieren
 - kuratierte Pilotdokumente je Bereich festziehen
-- Open-WebUI-Knowledge-Base-Setup und RAG-Prozess operationalisieren
-- Testkatalog gegen echte Pilotdaten fahren
-- Prompt-Standards und Antwortformate schrittweise vereinheitlichen
+- Reindex-/Recovery-Pfad fuer Chroma absichern
+- Antwortqualitaet mit Testkatalog gegen echte Pilotdaten messen
 - Entra erst nach stabilem lokalen Pilot anschliessen

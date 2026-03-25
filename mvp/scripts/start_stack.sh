@@ -11,8 +11,8 @@ if [[ -f .env ]]; then
 fi
 
 mkdir -p \
-  data/openwebui \
-  data/chroma \
+  data/open-webui \
+  data/chromadb \
   documents/hr \
   documents/vertrieb \
   documents/projekte \
@@ -26,3 +26,4 @@ docker compose up -d
 echo "Open WebUI: http://localhost:${OPEN_WEBUI_PORT:-3000}"
 echo "Chroma: http://localhost:${CHROMA_PORT:-8001}"
 echo "MLX-Server separat starten mit: ./scripts/start_mlx_host.sh"
+echo "Danach in Open WebUI unter Admin > Settings > Connections pruefen, ob der OpenAI-kompatible Endpoint sichtbar ist."
