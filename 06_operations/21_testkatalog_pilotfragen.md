@@ -7,7 +7,7 @@ Er testet:
 - Retrieval-Treffer
 - Antwortqualitaet
 - Quellenbezug
-- Zugriffstrennung
+- lokalen Pilotbetrieb
 
 ## Bewertungslogik
 
@@ -24,7 +24,7 @@ Jede Frage sollte mindestens entlang dieser Kriterien bewertet werden:
 - Vertrieb
 - Projekte
 - Bereichsuebergreifend
-- Zugriff
+- Betrieb und Zugriff
 
 ## HR
 
@@ -143,7 +143,7 @@ Frage:
 - Was fehlt aktuell noch zum ChatGPT-Ersatz?
 
 Erwartung:
-- Tooling, Orchestrierung, Memory, Retrieval-Qualitaet, Monitoring/Governance
+- Tooling, Orchestrierung, Memory, Retrieval-Qualitaet, Monitoring und Governance
 - keine Verwechslung mit reinem Modellvergleich
 
 ### Cross-03
@@ -158,40 +158,43 @@ Frage:
 - Welche Reihenfolge ist fuer die Umsetzung des Projekts sinnvoll?
 
 Erwartung:
-- Plattform, Wissensqualitaet, Zugriff, Use Cases, danach Ausbau
+- zuerst Open WebUI + MLX + Chroma stabilisieren
+- dann Wissensqualitaet und Use Cases absichern
+- Entra erst am Ende anschliessen
 
-## Zugriff
+## Betrieb und Zugriff
 
-### Zugriff-01
+### Betrieb-01
 Frage:
-- Ein Nutzer aus der Gruppe Vertrieb fragt nach HR-Richtlinien. Was darf er sehen?
+- Welche Komponenten muessen fuer den Pilot laufen, bevor Nutzer testen koennen?
 
 Erwartung:
-- nur vertriebsberechtigte Inhalte
-- kein Zugriff auf HR-spezifische Knowledge Base
+- Open WebUI, MLX-Server und Chroma werden korrekt genannt
+- Healthchecks oder Startpfad sind nachvollziehbar
 
-### Zugriff-02
+### Betrieb-02
 Frage:
-- Ein Nutzer ohne Projektgruppe fragt nach internen Delivery-Playbooks. Was passiert?
+- Woran erkennst du, ob der lokale MLX-Endpoint sauber angebunden ist?
 
 Erwartung:
-- Zugriff wird verweigert oder es werden keine unberechtigten Inhalte geliefert
+- Hinweis auf `/health`, `/v1/models` oder erfolgreichen Testchat
+- keine vagen Aussagen ohne konkreten Pruefpfad
 
-### Zugriff-03
+### Betrieb-03
 Frage:
-- Ein Admin prueft, ob die Knowledge Bases korrekt nach Gruppen getrennt sind. Welche Faelle muessen getestet werden?
+- Wo liegen Pilotdokumente, Manifeste und persistente Daten im MVP?
 
 Erwartung:
-- Positiv- und Negativfaelle fuer jede Gruppe
-- Login-/Logout-Effekt bei Gruppenwechsel beachten
+- Verweis auf `mvp/documents/`, `mvp/processed/manifests/` und `mvp/data/`
+- klare Trennung der Zwecke
 
-### Zugriff-04
+### Betrieb-04
 Frage:
-- Was passiert, wenn eine Gruppe im Entra-Token fehlt?
+- Ist Entra schon Teil von Phase 1?
 
 Erwartung:
-- Zugriff ist nach erneutem Login nicht mehr vorhanden
-- Entra bleibt die fuehrende Wahrheit
+- klare Antwort: nein
+- Entra wird als letzter Integrationsschritt eingeordnet
 
 ## Testdurchfuehrung
 
@@ -199,17 +202,17 @@ Empfehlung pro Testlauf:
 - 5 Fragen aus HR
 - 5 Fragen aus Vertrieb
 - 5 Fragen aus Projekte oder Cross
-- 3 Zugriffstests
+- 3 bis 4 Betriebsfragen
 
 ## Ampellogik
 
 - `Gruen`: richtige Quelle, richtige Antwort, keine Halluzination
 - `Gelb`: teilweise korrekt oder unklare Quellenlage
-- `Rot`: falsche Antwort, falscher Zugriff oder Halluzination
+- `Rot`: falsche Antwort, fehlender Quellenbezug oder Halluzination
 
 ## Mindestziel fuer Phase 1
 
 Phase 1 sollte erst als belastbar gelten, wenn:
 - die meisten Kernfragen `Gruen` sind
-- keine kritischen Zugriffstests `Rot` sind
+- keine kritischen Betriebsfragen `Rot` sind
 - die Fehlerbilder dokumentiert und wiederholbar sind

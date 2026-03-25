@@ -7,8 +7,8 @@ EBF baut keinen reinen Wissenschatbot, sondern schrittweise eine interne AI-Plat
 Der aktuelle Stand ist:
 - Open WebUI als Frontend
 - RAG mit Chroma
-- lokale und Cloud-Modelle
-- erste Zugriffskontrolle ueber Entra
+- lokaler MLX-Modellserver
+- erste Pilotdokumente und Setup-Bausteine
 
 Das Zielbild ist:
 - verlaesslicher Wissensassistent
@@ -34,7 +34,7 @@ Ziel: stabile technische Basis fuer den Pilot.
 
 Inhalte:
 - Mac mini / Laufzeitumgebung
-- MLX oder alternativer lokaler OpenAI-kompatibler Endpoint
+- lokaler MLX/OpenAI-kompatibler Endpoint
 - Open WebUI
 - Chroma
 - Deployment-, Start- und Backup-Logik
@@ -64,19 +64,19 @@ Deliverables:
 - Testkatalog fuer Retrieval und Antwortqualitaet
 
 ### Stream C - Nutzer und Zugriff
-Ziel: richtige Inhalte fuer die richtigen Gruppen.
+Ziel: Pilot zunaechst einfach, spaeter sauber abgesichert betreiben.
 
 Inhalte:
-- Entra App Registration
-- Gruppenmodell
-- Login und Group Sync in Open WebUI
-- Bereichstrennung fuer Knowledge Bases
+- lokale Pilotnutzer in Open WebUI
+- schlankes Admin-Modell
+- manuelle Bereichstrennung fuer Knowledge Bases
+- Entra als letzter Integrationsschritt
 
 Deliverables:
-- Entra Gruppenmodell
-- dokumentierte Berechtigungslogik
-- getrennte Knowledge Bases fuer sensible Bereiche
-- Testfaelle fuer Zugriffsrechte
+- lokaler Pilotzugriff ohne SSO-Abhaengigkeit
+- dokumentierte Minimalrechte
+- getrennte Bereiche fuer sensible Inhalte
+- spaeteres Entra-Zielbild beschrieben
 
 ### Stream D - Arbeitslogik und Use Cases
 Ziel: vom Chatbot zum Arbeitsassistenten.
@@ -116,10 +116,10 @@ Deliverables:
 Ziel: verlaesslicher Wissensassistent.
 
 Prioritaet:
-- Setup vereinheitlichen
+- Open WebUI + MLX + Chroma als Referenzstack festziehen
 - RAG-Quellen bereinigen
 - Metadaten und Chunking festlegen
-- Zugriffskontrolle fuer Bereiche aufsetzen
+- lokale Pilotnutzung sauber aufsetzen
 - Testkatalog anlegen
 
 Ergebnis:
@@ -141,39 +141,41 @@ Ergebnis:
 - direkte Arbeitserleichterung
 - klarer Fachnutzen
 
-### Phase 3 - Plattform erweitern
-Ziel: Richtung AI-Plattform gehen.
+### Phase 3 - Plattform haerten und erweitern
+Ziel: vom stabilen Pilot zur unternehmensfaehigen Plattform.
 
 Prioritaet:
+- Entra SSO und Zugriffstrennung anschliessen
 - Tool Layer vorbereiten
 - API-Integrationen bewerten
 - Memory-Konzept definieren
 - Monitoring und Governance ausbauen
 
 Ergebnis:
+- Pilot wird unternehmensfaehig im Zugriff
 - Assistent kann nicht nur antworten, sondern spaeter handeln
 - Basis fuer Produktivbetrieb
 
 ## 5. Priorisierte Arbeitspakete
 
 ### Sofort sinnvoll
-1. Zielordner und Artefakte konsolidieren
-2. Zielarchitektur auf einer Seite festziehen
+1. Open WebUI + MLX + Chroma als Referenz-MVP festziehen
+2. Start-, Stop- und Healthcheck-Logik vereinheitlichen
 3. Dokumentquellen fuer den Pilot auswaehlen
 4. Metadatenmodell und Chunking-Regeln festlegen
-5. Entra-Gruppen und Knowledge-Base-Schnitt definieren
+5. Ingestion-Pfad mit Manifest-Logik aufsetzen
 6. Testfragen je Bereich erstellen
 
 ### Danach
-1. Ingestion-Pipeline produktionsnah aufsetzen
+1. Testkatalog gegen echte Pilotdaten fahren
 2. Rollen und Betriebsmodell festlegen
 3. Top-Use-Cases mit Fachbereich abstimmen
 4. Prompt-Standards und Templates bauen
 
 ### Spaeter
-1. APIs und Tool Layer priorisieren
-2. Monitoring und KPI-Dashboard aufbauen
-3. Memory-Ansatz und Personalisierung pruefen
+1. Entra und gruppenbasierten Zugriff anschliessen
+2. APIs und Tool Layer priorisieren
+3. Monitoring, KPI-Dashboard und Memory-Ansatz aufbauen
 
 ## 6. Minimale Projektorganisation
 
@@ -193,7 +195,7 @@ Empfohlener Rhythmus:
 Der Pilot ist erfolgreich, wenn:
 - das Setup reproduzierbar startet
 - die wichtigsten Dokumente sauber indexiert sind
-- Zugriffe pro Bereich korrekt funktionieren
+- der lokale Pilotbetrieb stabil funktioniert
 - Testfragen ueberwiegend korrekt beantwortet werden
 - mindestens 2 Use Cases echten Zeitgewinn liefern
 
@@ -201,6 +203,7 @@ Der Pilot ist erfolgreich, wenn:
 
 Die wichtigsten Risiken sind:
 - zu frueher Fokus auf Modelle statt Datenqualitaet
+- zu frueher Fokus auf Entra statt stabilem Kernstack
 - unklare Verantwortlichkeit fuer Inhalte
 - fehlende Testfaelle fuer Retrieval und Zugriff
 - zu breite Pilotabdeckung ohne priorisierte Use Cases
@@ -210,49 +213,12 @@ Die wichtigsten Risiken sind:
 
 ### Woche 1
 - Zielarchitektur finalisieren
-- Ordner- und Datenmodell beschliessen
+- Open WebUI + MLX + Chroma als Referenzstack festziehen
 - Pilotdokumente auswaehlen
-- Entra-Gruppenmodell definieren
+- Ordner- und Datenmodell beschliessen
 - erste Testfragen sammeln
 
 ### Woche 2
 - Ingestion-Pipeline fuer Pilotdaten aufsetzen
-- Knowledge Bases trennen
-- Zugriffsrechte testen
-- Qualitaet gegen Testfragen pruefen
-- Top-Use-Cases fuer Phase 2 priorisieren
-
-## 10. Empfehlung zur Repo-Struktur
-
-Wenn dieses Verzeichnis weiter als Arbeitsbasis genutzt wird, sollte es in klare Bereiche getrennt werden:
-
-```text
-EBF RAG/
-├── 00_strategy/
-├── 01_architecture/
-├── 02_setup/
-├── 03_rag/
-├── 04_access/
-├── 05_use_cases/
-├── 06_operations/
-└── 99_assets/
-```
-
-Zuordnung der bestehenden Dateien:
-- Zielbild und Roadmap nach `00_strategy/`
-- Setup-Dokumente nach `02_setup/`
-- RAG- und Ingestion-Dokumente nach `03_rag/`
-- Entra/Open WebUI Zugriff nach `04_access/`
-- PPTX und Bilder nach `99_assets/`
-
-## 11. Kurzfazit
-
-Die richtige Reihenfolge fuer EBF ist:
-
-1. Plattform stabilisieren
-2. Wissensqualitaet absichern
-3. Zugriff sauber trennen
-4. fachliche Use Cases priorisieren
-5. erst danach Tooling, Memory und erweiterte Plattformfunktionen
-
-Damit wird aus mehreren guten Einzelideen ein steuerbares Projekt mit klarer Reihenfolge.
+- Testlauf mit Pilotfragen fahren
+- Knowledge-Base- und Bereichstrennung lokal vorbereiten

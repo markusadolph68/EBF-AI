@@ -12,6 +12,15 @@ Empfohlene Spalten:
 
 ## Backlog
 
+### `P2` OIDC und Group Sync fuer Open WebUI konfigurieren
+Ziel:
+- Entra erst nach stabilem lokalem Pilot anschliessen
+
+Definition of Done:
+- Testlogin funktioniert
+- Gruppen aus dem Token werden erkannt
+- Rechteaenderungen greifen nach erneutem Login
+
 ### `P2` Modell-Routing lokal vs. Cloud definieren
 Ziel:
 - Regeln fuer Speed, Kosten und Qualitaet festlegen
@@ -20,14 +29,6 @@ Definition of Done:
 - Standardmodell ist festgelegt
 - Eskalationsfaelle zur Cloud sind beschrieben
 - Vergleichsergebnisse liegen vor
-
-### `P2` Reviewprozess fuer neue Dokumente definieren
-Ziel:
-- geregelter Weg fuer neue Wissensinhalte
-
-Definition of Done:
-- Einreichung, Freigabe und Reindexierung sind dokumentiert
-- Verantwortlichkeiten sind benannt
 
 ### `P2` Logging- und Monitoring-Konzept vorbereiten
 Ziel:
@@ -39,12 +40,12 @@ Definition of Done:
 
 ## Diese Woche
 
-### `P0` Zielarchitektur final dokumentieren
+### `P0` Referenz-Stack Open WebUI + MLX + Chroma festziehen
 Ziel:
-- abgestimmtes Gesamtbild fuer Plattform, RAG, Modelle und Zugriff
+- eindeutiger Zielpfad fuer den Pilot
 
 Naechster Schritt:
-- finale Architekturuebersicht auf einer Seite festziehen
+- `mvp/` als Referenzstack finalisieren und pruefen
 
 ### `P0` Pilotdokumente je Bereich auswaehlen
 Ziel:
@@ -60,12 +61,12 @@ Ziel:
 Naechster Schritt:
 - Pflichtfelder final beschliessen
 
-### `P0` Entra-Gruppenmodell definieren
+### `P0` Ingestion-Pipeline mit Manifest-Logik aufsetzen
 Ziel:
-- Trennung von Inhaltsgruppen und Adminrechten
+- wiederholbare Verarbeitung geaenderter Dokumente
 
 Naechster Schritt:
-- konkrete Gruppennamen und Berechtigungslogik festlegen
+- Dokumentordner und erste Imports gegen Chroma fahren
 
 ### `P0` Testkatalog fuer Retrieval und Antwortqualitaet anlegen
 Ziel:
@@ -76,33 +77,34 @@ Naechster Schritt:
 
 ## In Arbeit
 
-### `P0` Zielordner und Artefakte vereinheitlichen
+### `P0` Start-, Stop- und Healthcheck-Logik vereinheitlichen
 Status:
-- Grundstruktur ist umgesetzt
+- Skripte und Checks werden im Referenzpfad gebuendelt
 
 Restarbeiten:
-- neue Dokumente konsequent in der Zielstruktur pflegen
+- einmal lokal gegen den Stack pruefen
 
 Definition of Done:
-- keine ungeordneten Kerndokumente mehr im Wurzelverzeichnis
+- Start, Stop und Healthcheck sind ohne Spezialwissen nutzbar
 
 ## Review
 
-### `P0` Standard-Setup fuer Open WebUI, Chroma und Modellserver festlegen
+### `P1` Lokales Open-WebUI-Adminmodell definieren
 Prueffragen:
-- welche Servervariante ist Referenz fuer den Pilot
-- welche Healthchecks sind Pflicht
-- welche Konfiguration ist verbindlich
+- sind Adminrechte minimal vergeben
+- ist klar, wer den Pilot operativ betreut
+- braucht der Pilot schon weitere Nutzerrollen
 
-### `P0` Chunking-Regeln definieren
-Prueffragen:
-- funktionieren die Regeln auf echten Pilotdokumenten
-- sind Tabellen und Ueberschriften sauber behandelt
-
-### `P0` Knowledge Bases nach Bereichen trennen
+### `P1` Bereiche und Knowledge Bases lokal trennen
 Prueffragen:
 - sind Bereichsgrenzen fachlich korrekt
-- sind Standardrechte minimal gesetzt
+- passt die technische Trennung zu den Pilotdokumenten
+- bleibt die spaetere Entra-Zuordnung moeglich
+
+### `P0` MLX/OpenAI-kompatiblen Hostserver als Standard festlegen
+Prueffragen:
+- funktionieren `/health`, `/v1/models` und Chat sauber
+- ist das Provider-Setup in Open WebUI klar dokumentiert
 
 ## Erledigt
 

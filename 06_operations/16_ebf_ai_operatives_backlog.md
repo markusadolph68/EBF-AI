@@ -15,37 +15,38 @@ Dieses Backlog uebersetzt den Projektplan in umsetzbare Epics und Tasks fuer den
 Ziel: reproduzierbare technische Basis fuer den Pilotbetrieb.
 
 ### Task 1.1 `P0`
-Titel: Zielarchitektur final dokumentieren
+Titel: Referenz-Stack Open WebUI + MLX + Chroma festziehen
 
 Ergebnis:
-- eine abgestimmte Architekturuebersicht fuer Frontend, Modelle, RAG und Zugriff
+- ein eindeutiger Zielpfad fuer UI, Modellanbindung und Vektorstore
 
 Akzeptanzkriterien:
-- Komponenten und Datenfluss sind beschrieben
-- lokale und Cloud-Anteile sind klar getrennt
-- Betriebsverantwortung ist benannt
+- `mvp/` ist der Referenzpfad
+- Startreihenfolge ist dokumentiert
+- lokale Ports und Persistenz sind klar benannt
 
 ### Task 1.2 `P0`
-Titel: Zielordner und Artefakte vereinheitlichen
+Titel: Start-, Stop- und Healthcheck-Logik vereinheitlichen
 
 Ergebnis:
-- konsistente Projektstruktur fuer Strategie, Setup, RAG, Zugriff und Betrieb
+- einfacher operativer Einstieg fuer Admins
 
 Akzeptanzkriterien:
-- bestehende Dokumente sind einsortiert
-- neue Inhalte folgen derselben Struktur
-- Such- und Uebergabeaufwand sinkt
+- Startskript vorhanden
+- Stopskript vorhanden
+- Healthchecks fuer Open WebUI, MLX und Chroma sind definiert
 
 ### Task 1.3 `P0`
-Titel: Standard-Setup fuer Open WebUI, Chroma und Modellserver festlegen
+Titel: MLX/OpenAI-kompatiblen Hostserver als Standard festlegen
 
 Ergebnis:
-- eine bevorzugte Referenzvariante fuer den Pilot
+- Open WebUI kann stabil mit dem lokalen Modellserver sprechen
 
 Akzeptanzkriterien:
-- Startreihenfolge ist dokumentiert
-- benoetigte Konfigurationen sind benannt
-- Gesundheitspruefungen sind definiert
+- `/health` funktioniert
+- `/v1/models` funktioniert
+- `/v1/chat/completions` funktioniert
+- Provider-Setup in Open WebUI ist dokumentiert
 
 ### Task 1.4 `P1`
 Titel: Betriebscheckliste fuer Start, Stop und Fehlerbilder erstellen
@@ -95,7 +96,7 @@ Akzeptanzkriterien:
 - Tabellen und Ueberschriften werden sinnvoll behandelt
 - die Regeln sind an Pilotdokumenten testbar
 
-### Task 2.4 `P1`
+### Task 2.4 `P0`
 Titel: Ingestion-Pipeline mit Manifest-Logik aufsetzen
 
 Ergebnis:
@@ -117,22 +118,44 @@ Akzeptanzkriterien:
 - Trefferqualitaet und Antwortqualitaet koennen bewertet werden
 - derselbe Katalog ist wiederverwendbar
 
-## Epic 3 - Zugriff und Sicherheit sauber aufsetzen
+## Epic 3 - Zugriff schlank beginnen
 
-Ziel: richtige Inhalte fuer die richtigen Nutzergruppen.
+Ziel: Pilotbetrieb ohne Entra sauber beherrschbar machen.
 
 ### Task 3.1 `P0`
-Titel: Entra-Gruppenmodell definieren
+Titel: Lokales Open-WebUI-Adminmodell definieren
 
 Ergebnis:
-- klare Trennung zwischen Inhaltsgruppen und Adminrechten
+- klare Trennung zwischen wenigen Admins und Pilotnutzern
 
 Akzeptanzkriterien:
-- Gruppen sind benannt
-- ihre Funktion ist dokumentiert
-- Gruppen sind auf Knowledge Bases abbildbar
+- Admin-Verantwortung ist dokumentiert
+- lokale Pilotnutzer sind benannt
+- Rechte werden minimal vergeben
 
-### Task 3.2 `P0`
+### Task 3.2 `P1`
+Titel: Bereiche und Knowledge Bases lokal trennen
+
+Ergebnis:
+- mindestens getrennte Bereiche fuer sensible oder fachlich unterschiedliche Daten
+
+Akzeptanzkriterien:
+- Bereichsgrenzen sind definiert
+- Collections oder Knowledge Bases sind benannt
+- spaetere Entra-Zuordnung ist vorbereitet
+
+### Task 3.3 `P1`
+Titel: Rechte- und Zugriffstests fuer den lokalen Pilot dokumentieren
+
+Ergebnis:
+- nachvollziehbare Pruefung fuer Pilotnutzer und Admins
+
+Akzeptanzkriterien:
+- Positiv- und Negativfaelle sind vorhanden
+- Ergebnisse koennen wiederholt geprueft werden
+- Abweichungen werden dokumentiert
+
+### Task 3.4 `P2`
 Titel: OIDC und Group Sync fuer Open WebUI konfigurieren
 
 Ergebnis:
@@ -142,28 +165,6 @@ Akzeptanzkriterien:
 - Testlogin funktioniert
 - Gruppen aus dem Token werden erkannt
 - Rechteaenderungen greifen nach erneutem Login
-
-### Task 3.3 `P0`
-Titel: Knowledge Bases nach Bereichen trennen
-
-Ergebnis:
-- mindestens getrennte Bereiche fuer sensible oder fachlich unterschiedliche Daten
-
-Akzeptanzkriterien:
-- Bereichsgrenzen sind definiert
-- Knowledge Bases sind den Gruppen zugeordnet
-- Standardrechte sind minimal gehalten
-
-### Task 3.4 `P1`
-Titel: Rechte-Testfaelle dokumentieren
-
-Ergebnis:
-- nachvollziehbare Pruefung fuer erlaubte und unerlaubte Zugriffe
-
-Akzeptanzkriterien:
-- Positiv- und Negativfaelle sind vorhanden
-- Ergebnisse koennen wiederholt geprueft werden
-- Abweichungen werden dokumentiert
 
 ## Epic 4 - Fachliche Use Cases priorisieren
 
@@ -210,7 +211,7 @@ Ergebnis:
 
 Akzeptanzkriterien:
 - Standardmodell ist festgelegt
-- Eskalationsfaelle fuer komplexe Aufgaben sind definiert
+- Eskalationsfaelle zur Cloud sind definiert
 - Vergleichstests liegen vor
 
 ## Epic 5 - Betrieb und Governance verankern
@@ -258,32 +259,4 @@ Ergebnis:
 
 Akzeptanzkriterien:
 - relevante Signale sind definiert
-- Fehler, Nutzung und Antwortqualitaet sind beruecksichtigt
 - Umsetzungsoptionen sind benannt
-
-## Empfohlene Reihenfolge fuer die naechsten zwei Wochen
-
-### Woche 1
-- Task 1.1
-- Task 1.2
-- Task 2.1
-- Task 2.2
-- Task 3.1
-- Task 2.5
-
-### Woche 2
-- Task 1.3
-- Task 2.3
-- Task 2.4
-- Task 3.2
-- Task 3.3
-- Task 4.1
-
-## Definition of Done fuer Phase 1
-
-Phase 1 ist abgeschlossen, wenn:
-- die Plattform reproduzierbar startet
-- Pilotdokumente mit Metadaten indexiert sind
-- Bereichszugriffe funktionieren
-- Testfragen ueberwiegend korrekt beantwortet werden
-- die naechsten Use Cases fuer Phase 2 priorisiert sind

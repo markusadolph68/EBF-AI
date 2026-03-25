@@ -1,25 +1,28 @@
 services:
-  app:
-    build:
-      context: ./app
-    container_name: ebf-ai-mvp-app
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: ebf-ai-open-webui
     restart: unless-stopped
     env_file:
       - .env
     ports:
-      - "${APP_PORT:-8080}:8080"
+      - "${OPEN_WEBUI_PORT:-3000}:8080"
     volumes:
-      - ./data:/data
-    depends_on:
-      - chroma
+      - ./data/openwebui:/app/backend/data
+    environment:
+      WEBUI_NAME: "${WEBUI_NAME:-EBF AI}"
+      WEBUI_SECRET_KEY: "${WEBUI_SECRET_KEY:-ebf-ai-local-pilot}"
+      DEFAULT_LOCALE: "${DEFAULT_LOCALE:-de-DE}"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    depends_on:
+      - chroma
 
   chroma:
     image: chromadb/chroma:latest
-    container_name: ebf-ai-mvp-chroma
+    container_name: ebf-ai-chroma
     restart: unless-stopped
     ports:
-      - "8001:8000"
+      - "${CHROMA_PORT:-8001}:8000"
     volumes:
-      - ./data/chroma:/data
+      - ./data/chroma:/chroma/chroma

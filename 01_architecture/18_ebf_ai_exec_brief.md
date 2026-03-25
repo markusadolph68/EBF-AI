@@ -2,7 +2,7 @@
 
 ## Worum es geht
 
-EBF hat bereits einen funktionierenden internen AI-Piloten mit Open WebUI, RAG, lokalen und Cloud-Modellen sowie Entra-Zugriff.
+EBF hat bereits einen funktionierenden internen AI-Piloten mit Open WebUI, RAG und lokalen Modellserver-Bausteinen.
 Der aktuelle Reifegrad ist ein Wissenschatbot.
 
 Die strategische Chance liegt darin, daraus schrittweise einen produktiven Arbeitsassistenten und spaeter eine AI-Plattform zu entwickeln.
@@ -12,7 +12,7 @@ Die strategische Chance liegt darin, daraus schrittweise einen produktiven Arbei
 Der Engpass ist nicht primaer das Modell.
 Der Hebel liegt in:
 - Datenqualitaet
-- Zugriffstrennung
+- Betriebsreife
 - Orchestrierung
 - Betrieb und Governance
 
@@ -23,7 +23,7 @@ In Phase 1 geht es nicht um maximale Funktionsbreite, sondern um Verlaesslichkei
 Die richtige Reihenfolge ist:
 1. Plattform stabilisieren
 2. Wissensbasis und RAG-Qualitaet absichern
-3. Zugriffe nach Bereichen sauber trennen
+3. lokale Pilotnutzung ohne Entra-Abhaengigkeit absichern
 4. 2 bis 3 fachlich relevante Use Cases priorisieren
 
 ## Konkreter Nutzen fuer EBF
@@ -43,13 +43,14 @@ Mittelfristig:
 Phase 1 ist erfolgreich, wenn:
 - die Plattform stabil und reproduzierbar laeuft
 - relevante Dokumente sauber indexiert sind
-- sensible Inhalte gruppenbasiert getrennt sind
+- die lokale Pilotnutzung stabil funktioniert
 - Testfragen ueberwiegend korrekt beantwortet werden
 - mindestens zwei Use Cases klaren Mehrwert zeigen
 
 ## Wichtigste Risiken
 
 - Fokus auf Modellwahl statt Datenqualitaet
+- Fokus auf Entra vor technischem Kernsetup
 - zu viele Themen parallel
 - fehlende Verantwortlichkeit fuer Inhalte
 - unzureichende Tests fuer Retrieval und Berechtigungen

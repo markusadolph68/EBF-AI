@@ -22,13 +22,9 @@ fi
 
 echo "Nutze Python: $PYTHON_BIN"
 
-"$PYTHON_BIN" -m venv .venv-mlx
-source .venv-mlx/bin/activate
+"$PYTHON_BIN" -m venv .venv-ingest
+source .venv-ingest/bin/activate
 pip install --upgrade pip
-pip install -r mlx_host/requirements.txt
+pip install -r ingest/requirements.txt
 
-export MLX_MODEL_NAME="${MLX_MODEL_NAME:-NexVeridian/Qwen3.5-4B-5bit}"
-export MLX_HOST="${MLX_HOST:-0.0.0.0}"
-export MLX_PORT="${MLX_PORT:-8000}"
-
-python mlx_host/mlx_openai_server.py
+python ingest/ingest_documents.py "$@"

@@ -1,4 +1,7 @@
 data/
+.venv-mlx/
+.venv-ingest/
 __pycache__/
 *.pyc
-
+.DS_Store
+logs/

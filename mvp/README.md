@@ -1,110 +1,133 @@
 # EBF AI MVP
 
-Docker-basierter MVP fuer:
-- lokale Anmeldung ohne Entra
-- Spaces
-- Dokument-Upload pro Space
-- Docling-basierte Ingestion
-- Chroma als RAG-Speicher
-- Chat mit hostseitigem MLX/OpenAI-kompatiblem LLM
+Referenz-MVP auf Basis von:
+- Open WebUI als Benutzeroberflaeche
+- hostseitigem MLX/OpenAI-kompatiblem Modellserver
+- Chroma als Vektor-Datenbank
+- Docling-basierter, headless Ingestion nach Chroma
+
+Wichtig:
+- Entra ist bewusst **nicht** Teil dieses Baselineschritts.
+- Zuerst wird ein lokal reproduzierbarer Pilot mit Open WebUI + MLX + Chroma stabilisiert.
+- Entra folgt spaeter als letzter Integrationsschritt.
 
 ## Architektur
 
-- `app`: FastAPI mit Server-Side-HTML
-- `chroma`: Vektor-Datenbank
-- `mlx_host`: MLX/OpenAI-kompatibler Server auf dem Mac-Host
+- `docker-compose.yml`: Open WebUI und Chroma
+- `mlx_host/`: hostseitiger MLX/OpenAI-kompatibler Server fuer Apple Silicon
+- `ingest/`: headless Ingestion von `documents/` nach Chroma
+- `scripts/`: Start-, Stop-, Healthcheck- und Ingestion-Skripte
 
 ## Wichtiger Mac-Hinweis
 
-Der MVP nutzt Docker fuer App und Chroma.
-Das Chat-LLM laeuft bewusst hostseitig mit MLX auf dem Mac Mini, weil MLX/Metal in Linux-Containern auf macOS nicht sauber nutzbar ist.
-
-Deshalb ist die Chat-Anbindung bewusst OpenAI-kompatibel und auf MLX am Host ausgelegt:
-- hostseitiger MLX/OpenAI-Server
-- kleines Qwen-3.5-Modell fuer Apple Silicon
-- spaeter austauschbar gegen anderen OpenAI-kompatiblen Provider
+Open WebUI und Chroma laufen in Docker.
+Der Modellserver laeuft absichtlich auf dem Host, weil MLX/Metal unter macOS nicht sinnvoll im Linux-Container laeuft.
 
 ## Schnellstart
 
-1. Konfiguration anlegen:
+1. Konfiguration vorbereiten:
 
 ```bash
 cd mvp
 cp .env.example .env
-mkdir -p data
 ```
 
-2. Stack starten:
+2. Open WebUI und Chroma starten:
 
 ```bash
-docker compose up --build
+./scripts/start_stack.sh
 ```
 
 3. MLX-Server auf dem Host starten:
 
 ```bash
-cd mvp
-python3 -m venv .venv-mlx
-source .venv-mlx/bin/activate
-pip install -r mlx_host/requirements.txt
-python mlx_host/mlx_openai_server.py
+./scripts/start_mlx_host.sh
 ```
 
-4. UI oeffnen:
+4. Healthchecks laufen lassen:
+
+```bash
+./scripts/healthcheck.sh
+```
+
+5. Open WebUI oeffnen:
 
 ```text
-http://localhost:8080
+http://localhost:3000
 ```
 
-5. Ersten Benutzer registrieren, Space anlegen und Dokumente hochladen.
+6. In Open WebUI den Provider anlegen:
+- Typ: `OpenAI-compatible`
+- Base URL: `http://host.docker.internal:8000/v1`
+- API Key: `mlx`
+- Modell: Wert aus `MLX_MODEL_NAME`
 
-## Empfohlene MVP-Defaults
+## Dokumente und Ingestion
 
-- Chunk Size: `350`
-- Chunk Overlap: `50`
-- Retrieval K: `4`
-- Embedding Model: `intfloat/multilingual-e5-small`
-- Chat-LLM: `NexVeridian/Qwen3.5-4B-5bit`
-
-## Persistente Daten
-
-Alle Daten liegen unter:
+Pilotdokumente liegen unter:
 
 ```text
-mvp/data/
+mvp/documents/hr/
+mvp/documents/vertrieb/
+mvp/documents/projekte/
 ```
 
-Darin liegen:
-- SQLite-Datenbank
-- Uploads
-- verarbeitete Dokumente
-- Chroma-Daten
+Optional kann pro Dokument eine Sidecar-Datei `<datei>.metadata.json` abgelegt werden, um Felder wie `title`, `version`, `confidentiality`, `document_type`, `owner`, `kb_name` oder `tags` zu setzen.
 
-## Persistenz
+Die headless Ingestion nach Chroma startest du so:
 
-Der MVP speichert persistent in zwei Schichten:
+```bash
+./scripts/ingest_documents.sh
+```
 
-- SQLite unter `mvp/data/app.db`
-- Chroma unter `mvp/data/chroma/`
+Dabei werden:
+- Texte mit Docling extrahiert
+- Chunks erzeugt
+- Pflichtmetadaten gesetzt
+- Manifeste unter `mvp/processed/manifests/` geschrieben
 
-Wichtig:
-- Wenn du `docker compose down` nutzt, bleiben die Daten erhalten.
-- Wenn du `mvp/data/` loeschst, ist das Wissen weg.
-- Bereits hochgeladene Dateien bleiben in `mvp/data/uploads/`, aber wenn Chroma-Daten fehlen, musst du neu indexieren oder neu hochladen.
+## Healthchecks
 
-## MLX-Konfiguration
+Folgende Checks sind vorgesehen:
+- Open WebUI ueber `http://localhost:3000/`
+- Chroma Heartbeat ueber Port `8001`
+- MLX-Server ueber `http://localhost:8000/health`
+- Modellliste ueber `http://localhost:8000/v1/models`
 
-Die Standardwerte in [.env](/Users/markusadolph/Library/CloudStorage/OneDrive-EBF-EDVBeratungFöllmerGmbH/EBF RAG/mvp/.env) zeigen auf:
+## Projektstruktur
 
-- `LLM_BASE_URL=http://host.docker.internal:8000/v1`
-- `LLM_MODEL=NexVeridian/Qwen3.5-4B-5bit`
+```text
+mvp/
+├── .env.example
+├── docker-compose.yml
+├── documents/
+│   ├── hr/
+│   ├── vertrieb/
+│   └── projekte/
+├── ingest/
+│   ├── ingest_documents.py
+│   └── requirements.txt
+├── mlx_host/
+│   ├── mlx_openai_server.py
+│   └── requirements.txt
+├── processed/
+│   └── manifests/
+└── scripts/
+    ├── healthcheck.sh
+    ├── ingest_documents.sh
+    ├── start_mlx_host.sh
+    ├── start_stack.sh
+    └── stop_stack.sh
+```
 
-Wenn du spaeter ein anderes MLX-Modell testen willst, reicht es meist, nur `LLM_MODEL` anzupassen und den Host-Server neu zu starten.
+## Status
 
-## Nächste sinnvolle Ausbaustufen
+Der alte FastAPI-Prototyp unter `mvp/app/` bleibt vorerst als Referenz erhalten, ist aber **nicht mehr** der Default-Pfad fuer den Pilot.
 
-- Entra SSO statt lokaler Anmeldung
-- Hintergrundjobs fuer Ingestion
-- Versions- und Reindex-Management
-- Rollen und Space-Sharing
-- besseres Prompting und Modell-Routing
+## Naechste sinnvolle Ausbaustufen
+
+- kuratierte Pilotdokumente je Bereich festziehen
+- Open-WebUI-Knowledge-Base-Setup und RAG-Prozess operationalisieren
+- Testkatalog gegen echte Pilotdaten fahren
+- Prompt-Standards und Antwortformate schrittweise vereinheitlichen
+- Entra erst nach stabilem lokalen Pilot anschliessen

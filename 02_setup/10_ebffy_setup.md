@@ -1,136 +1,92 @@
-# 🚀 EBFfy Setup – Branding + Deployment Guide  
-## Open WebUI → EBF AI Plattform
+# EBFfy Setup - Branding + Deployment Guide
+## Open WebUI -> EBF AI Plattform
 
----
+## Ziel
 
-## 🎯 Ziel
+Open WebUI wird in der Baseline zuerst zu:
 
-Open WebUI wird zu:
-
-👉 **EBFfy – interner AI Assistent der EBF Gruppe**
+`EBFfy` - interner AI-Assistent der EBF Gruppe
 
 Mit:
-- eigenem Branding  
-- eigener Domain  
-- Entra SSO  
-- professionellem Look & Feel  
+- eigenem Branding
+- hostseitigem MLX-Modellserver
+- Chroma als RAG-Basis
+- lokalem Pilotbetrieb ohne Entra
 
----
+Entra ist bewusst nicht Teil dieses Baselineschritts und folgt spaeter als letzter Integrationsschritt.
 
-# 🧱 Zielarchitektur
+## Zielarchitektur
 
 ```text
-Internet / Mitarbeiter
-        ↓
-https://ai.ebf.de
-        ↓
-Reverse Proxy (Nginx / Traefik)
+Pilotnutzer
         ↓
 Open WebUI (EBFfy)
         ↓
-LLM Backend (MLX / RunPod)
+LLM Backend (MLX lokal)
         ↓
 RAG (Chroma)
 ```
 
----
-
-# ⚙️ 1. `.env` Branding (Copy & Paste)
+## 1. `.env` Branding
 
 ```env
 WEBUI_NAME=EBFfy
-WEBUI_URL=https://ai.ebf.de
-WEBUI_DESCRIPTION=Interner AI Assistent der EBF Gruppe
-
+WEBUI_SECRET_KEY=ebf-local-pilot
 DEFAULT_LOCALE=de-DE
-ENABLE_SIGNUP=false
-
-ENABLE_OAUTH_SIGNUP=true
-OAUTH_PROVIDER_NAME=Microsoft Entra
-
-OPENID_PROVIDER_URL=https://login.microsoftonline.com/DEIN_TENANT_ID/v2.0/.well-known/openid-configuration
-OPENID_REDIRECT_URI=https://ai.ebf.de/oauth/oidc/callback
-
-OAUTH_CLIENT_ID=DEINE_CLIENT_ID
-OAUTH_CLIENT_SECRET=DEIN_CLIENT_SECRET
-OAUTH_SCOPES=openid profile email
-
-ENABLE_OAUTH_GROUP_MANAGEMENT=true
-OAUTH_GROUP_CLAIM=groups
-OAUTH_GROUP_DEFAULT_SHARE=members
+OPEN_WEBUI_PORT=3000
+CHROMA_PORT=8001
+MLX_PORT=8000
+MLX_MODEL_NAME=NexVeridian/Qwen3.5-4B-5bit
 ```
 
----
+## 2. Branding
 
-# 🌐 2. Domain Setup
+Farben:
+- Primary: `#0066CC`
+- Secondary: `#0F172A`
+- Accent: `#22C55E`
+- Background: `#F8FAFC`
 
-```text
-ai.ebf.de → Server-IP
-```
+## 3. Baseline-Setup
 
----
+1. `mvp/.env` anlegen
+2. `./mvp/scripts/start_stack.sh` ausfuehren
+3. `./mvp/scripts/start_mlx_host.sh` ausfuehren
+4. `./mvp/scripts/healthcheck.sh` ausfuehren
+5. Open WebUI unter `http://localhost:3000` oeffnen
 
-# 🔐 3. Reverse Proxy (Nginx Beispiel)
+## 4. Provider in Open WebUI
 
-```nginx
-server {
-    listen 80;
-    server_name ai.ebf.de;
+- Typ: `OpenAI-compatible`
+- Base URL: `http://host.docker.internal:8000/v1`
+- API Key: `mlx`
+- Modell: Wert aus `MLX_MODEL_NAME`
 
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
-
----
-
-# 🎨 4. Branding
-
-## Farben
-- Primary: #0066CC
-- Secondary: #0F172A
-- Accent: #22C55E
-- Background: #F8FAFC
-
----
-
-# 🧠 5. Systemprompt
+## 5. Systemprompt
 
 ```text
 Du bist EBFfy, der interne AI-Assistent der EBF Gruppe.
 
 Deine Aufgaben:
 - beantworte Fragen zu internen Prozessen
-- unterstütze bei Angeboten, Projekten und Analysen
+- unterstuetze bei Angeboten, Projekten und Analysen
 
 Regeln:
-- nutze nur verfügbare Quellen
+- nutze nur verfuegbare Quellen
 - erfinde keine Informationen
 - antworte auf Deutsch
 ```
 
----
+## 6. Spaeterer Ausbau
 
-# 🔐 6. Entra Login
+Nach stabiler Baseline folgen:
+- Domain und Reverse Proxy
+- erweitertes Branding
+- Entra SSO
+- gruppenbasierte Zugriffstrennung
 
-- App Name: EBFfy
-- Redirect URI: https://ai.ebf.de/oauth/oidc/callback
+## TL;DR
 
----
-
-# 🔥 7. Quick Wins
-
-- Domain
-- Name
-- SSO
-- Systemprompt
-
----
-
-# 🧾 TL;DR
-
-👉 Open WebUI wird zu EBFfy  
-👉 Branding + SSO + Domain = Produktgefühl
+Erst Open WebUI + MLX + Chroma stabilisieren.
+Dann Branding und Pilotbetrieb saubermachen.
+Entra kommt zuletzt.

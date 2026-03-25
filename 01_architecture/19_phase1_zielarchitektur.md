@@ -5,10 +5,11 @@
 Diese Zielarchitektur definiert die verbindliche Referenz fuer Phase 1 des EBF-AI-Piloten.
 Phase 1 bedeutet:
 - stabiler Betrieb
-- sauberer Zugriff
+- schlanke lokale Pilotnutzung ohne SSO-Abhaengigkeit
 - verlaessliche Wissensantworten
 
 Nicht Teil von Phase 1 sind:
+- Entra OIDC und Group Sync
 - Tool Layer
 - Memory ueber Sessions
 - tiefe Systemintegrationen
@@ -21,7 +22,7 @@ Die Referenzarchitektur fuer Phase 1 ist:
 2. lokaler OpenAI-kompatibler MLX-Server als Standard-LLM-Endpoint
 3. Chroma als Vektor-Datenbank
 4. Docling-basierte Ingestion-Pipeline fuer Dokumente
-5. Entra OIDC mit Gruppen-Sync fuer Zugriffstrennung
+5. lokale Open-WebUI-Accounts und manueller Admin-Betrieb als Pilot-Baseline
 
 ## Bevorzugte Komponenten
 
@@ -30,8 +31,8 @@ Die Referenzarchitektur fuer Phase 1 ist:
 
 Begruendung:
 - schnelle Bereitstellung
-- RAG- und Benutzeroberflaeche bereits passend zum Pilot
-- gut kombinierbar mit OIDC und lokalen OpenAI-kompatiblen Endpoints
+- passende UI fuer Chat, Provider und spaetere Knowledge-Base-Verwaltung
+- gut kombinierbar mit lokalen OpenAI-kompatiblen Endpoints
 
 ### Lokaler Modellserver
 - robuste MLX/OpenAI-Server-Variante aus `02_setup/2_ebf-macmini-pilot-mlx-openai-server.md`
@@ -41,21 +42,21 @@ Begruendung:
 - die Minimalvariante ist fuer Pilotbetrieb zu knapp
 
 ### Standardmodell lokal
-- Qwen3.5-9B als Ziel-Standard fuer den Pilot
+- Qwen3.5-4B-5bit als sichere Startkonfiguration fuer den Pilot
 
 Begruendung:
-- laut bestehender Bewertung besseres Verhaeltnis aus Qualitaet und Laufzeit
-- ausreichend fuer Phase-1-Wissensassistent
+- niedrigeres Betriebsrisiko auf Apple Silicon
+- ausreichend fuer den ersten stabilen Wissensassistenten
 
 Hinweis:
-- falls Qwen3.5-9B lokal nicht stabil laeuft, ist Llama 3.x 8B der Fallback fuer Vergleich und Betrieb
+- nach erfolgreicher Stabilisierung kann auf ein staerkeres lokales Modell hochgeruestet werden
 
 ### Cloud-Modell
 - in Phase 1 optional, nicht Standardpfad
 
 Begruendung:
 - zuerst muss der lokale Wissensassistent belastbar werden
-- Cloud-Routing wird erst in Phase 2 relevant
+- Cloud-Routing wird erst spaeter relevant
 
 ### Vektor-Datenbank
 - Chroma persistent lokal
@@ -66,24 +67,22 @@ Begruendung:
 - Chunking anhand von Struktur statt fixer Zeichenbloecke
 
 ### Zugriff
-- Entra OIDC
-- Group Sync in Open WebUI
-- getrennte Knowledge Bases pro Bereich
+- lokale Open-WebUI-Accounts
+- manuell freigegebene Bereiche oder Knowledge Bases
+- Entra bewusst erst nach stabilem Pilotbetrieb
 
 ## Zielbild als Datenfluss
 
 ```text
 Nutzer
   ↓
-Microsoft Entra Login
+Lokaler Open WebUI Login
   ↓
 Open WebUI
   ↓
 OpenAI-kompatibler MLX-Server
   ↓
-RAG-Retrieval gegen Chroma
-  ↓
-Dokument-Chunks mit Metadaten
+Antwort an den Nutzer
 ```
 
 ## Ingestion-Datenfluss
@@ -119,7 +118,8 @@ Optional zusaetzlich:
 Jeder Bereich bekommt:
 - definierte Quelldokumente
 - eigene Metadatenkennzeichnung
-- getrennte Knowledge Base oder gleichwertige Zugriffstrennung
+- getrennte Collection oder gleichwertige technische Trennung
+- spaetere Zuordnung zu Open-WebUI-Knowledge-Bases
 
 ## Betriebsmodell fuer Phase 1
 
@@ -127,17 +127,18 @@ Jeder Bereich bekommt:
 - `open-webui`
 - `chroma`
 - `mlx_openai_server`
+- `ingest_documents.py` als kontrollierter Batch-Prozess
 
 ### Persistente Daten
-- `openwebui_data/`
-- `chroma_data/`
-- `processed/manifests/`
+- `mvp/data/openwebui/`
+- `mvp/data/chroma/`
+- `mvp/processed/manifests/`
 
 ### Quellordner
-- `documents/hr/`
-- `documents/vertrieb/`
-- `documents/projekte/`
-- optional `documents/policies/`
+- `mvp/documents/hr/`
+- `mvp/documents/vertrieb/`
+- `mvp/documents/projekte/`
+- optional `mvp/documents/policies/`
 
 ## Healthchecks
 
@@ -145,27 +146,29 @@ Folgende Pruefungen sind fuer Phase 1 verbindlich:
 
 ### Open WebUI
 - UI erreichbar
-- Login moeglich
-- Modellprovider sichtbar
+- lokaler Admin-Login moeglich
+- Modellprovider konfigurierbar
 
 ### MLX-Server
 - `GET /health`
 - `GET /v1/models`
 - `POST /v1/chat/completions`
+- optional `POST /v1/completions`
 
 ### Chroma
 - Heartbeat oder gleichwertige API-Pruefung
-- Collection erreichbar
+- Collections erreichbar
 
 ### Zugriff
-- Testnutzer mit Gruppe sieht nur erlaubte Knowledge Bases
-- Testnutzer ohne Gruppe sieht keinen unberechtigten Bereich
+- lokaler Standardnutzer kann den Pilot nutzen
+- Adminrechte sind bewusst knapp vergeben
+- Entra ist noch kein Abnahmekriterium
 
 ## Konfigurationsentscheidungen
 
 ### Open WebUI
-- OIDC aktiv
-- Group Management aktiv
+- lokale Authentifizierung aktiv
+- zunaechst nur wenige Pilotnutzer
 - minimale Default-Rechte
 
 ### Modellanbindung
@@ -179,8 +182,14 @@ Folgende Pruefungen sind fuer Phase 1 verbindlich:
 - Metadaten je Chunk verpflichtend
 - Reindexierung nur kontrolliert
 
+### Zugriff
+- keine Abhaengigkeit von Entra fuer Phase 1
+- lokale Pilotnutzung zuerst
+- Entra als letzter Integrationsschritt nach erfolgreicher Stabilisierung
+
 ## Was in Phase 1 bewusst noch nicht optimiert wird
 
+- Entra OIDC und Gruppen-Sync
 - komplexes Modell-Routing
 - agentische Workflows
 - Tool-Ausfuehrung
@@ -191,7 +200,7 @@ Folgende Pruefungen sind fuer Phase 1 verbindlich:
 
 Phase 1 sollte als technisch freigegeben gelten, wenn:
 - die drei Kernkomponenten reproduzierbar starten
-- Open WebUI mit dem robusten MLX-Endpoint stabil spricht
+- Open WebUI mit dem MLX-Endpoint stabil spricht
 - Pilotdokumente strukturiert in Chroma landen
-- Zugriffstrennung ueber Entra-Gruppen funktioniert
+- die lokale Pilotnutzung ohne Spezialwissen bedienbar ist
 - Testfragen ueber denselben Prozess wiederholt pruefbar sind

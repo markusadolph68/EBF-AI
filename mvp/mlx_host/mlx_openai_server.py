@@ -27,6 +27,13 @@ class ChatCompletionRequest(BaseModel):
     temperature: float = 0.2
 
 
+class CompletionRequest(BaseModel):
+    model: str | None = None
+    prompt: str
+    max_tokens: int = 500
+    temperature: float = 0.2
+
+
 def build_prompt(messages: list[Message]) -> str:
     if tokenizer.chat_template is not None:
         chat_messages = [{"role": item.role, "content": item.content} for item in messages]
@@ -41,6 +48,25 @@ def build_prompt(messages: list[Message]) -> str:
         lines.append(f"{item.role.title()}: {item.content.strip()}")
     lines.append("Assistant:")
     return "\n".join(lines)
+
+
+def generate_text(prompt: str, max_tokens: int) -> str:
+    return generate(
+        model,
+        tokenizer,
+        prompt=prompt,
+        max_tokens=max_tokens,
+        verbose=False,
+    )
+
+
+@app.get("/")
+def root():
+    return {
+        "service": "ebf-mlx-openai-server",
+        "status": "ok",
+        "model": MODEL_NAME,
+    }
 
 
 @app.get("/health")
@@ -62,17 +88,31 @@ def list_models():
     }
 
 
+@app.post("/v1/completions")
+def completions(req: CompletionRequest):
+    try:
+        text = generate_text(req.prompt, req.max_tokens)
+        return {
+            "id": "cmpl-ebf-mlx",
+            "object": "text_completion",
+            "model": MODEL_NAME,
+            "choices": [
+                {
+                    "index": 0,
+                    "text": text,
+                    "finish_reason": "stop",
+                }
+            ],
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
 @app.post("/v1/chat/completions")
 def chat_completions(req: ChatCompletionRequest):
     try:
         prompt = build_prompt(req.messages)
-        text = generate(
-            model,
-            tokenizer,
-            prompt=prompt,
-            max_tokens=req.max_tokens,
-            verbose=False,
-        )
+        text = generate_text(prompt, req.max_tokens)
         return {
             "id": "chatcmpl-ebf-mlx",
             "object": "chat.completion",
